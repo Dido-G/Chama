@@ -4,118 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Manager</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f7fc;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            text-align: center;
-            color: #4CAF50;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        h2 {
-            color: #333;
-        }
-        input[type="text"] {
-            padding: 10px;
-            margin-right: 10px;
-            width: 70%;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            padding: 10px 20px;
-            border: none;
-            background-color: #4CAF50;
-            color: white;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .task-list {
-            list-style-type: none;
-            padding: 0;
-        }
-        .task-list li {
-            padding: 10px;
-            margin-bottom: 8px;
-            background-color: #f9f9f9;
-            border-radius: 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .flash-message {
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 4px;
-        }
-        .flash-message.success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .flash-message.danger {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .flash-message.info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-        }
-    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Task Manager</h1>
+    <h1>Task Manager</h1>
+    
+    <!-- Form to add a new task -->
+    <h2>Do you want to add a new task?</h2>
+    <form action="/add_task" method="POST">
+        <input type="text" id="taskInput" name="task" placeholder="Enter a task" required>
+        <button type="submit">Add Task</button>
+    </form>
+    
+    <h2>To-Do Tasks</h2>
+    <ul>
+        {% for task in tasks %}
+        <li>
+            {{ task.task }} 
+            <!-- Form to mark task as done -->
+            <form action="{{ url_for('mark_done', task_id=task.id) }}" method="POST">
+                <button type="submit">Mark as Done</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
 
-        <!-- Flash messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="flash-message {{ category }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-        {% endwith %}
-        
-        <!-- Form to add a new task -->
-        <h2>Do you want to add a new task?</h2>
-        <form action="/add_task" method="POST">
-            <input type="text" id="taskInput" name="task" placeholder="Enter a task" required>
-            <button type="submit">Add Task</button>
-        </form>
-        
-        <h2>To-Do Tasks</h2>
-        <ul class="task-list">
-            {% for task in tasks %}
-                <li>
-                    {{ task.task }}
-                    <!-- Form to mark task as done -->
-                    <form action="{{ url_for('mark_done', task_id=task.id) }}" method="POST">
-                        <button type="submit">Mark as Done</button>
-                    </form>
-                </li>
-            {% endfor %}
-        </ul>
-
-        <h2>Completed Tasks</h2>
-        <ul class="task-list">
-            {% for task in done_tasks %}
-                <li>{{ task.task }}</li>
-            {% endfor %}
-        </ul>
-    </div>
+    <h2>Completed Tasks</h2>
+    <ul>
+        {% for task in done_tasks %}
+        <li>{{ task.task }}</li>
+        {% endfor %}
+    </ul>
 </body>
 </html>
