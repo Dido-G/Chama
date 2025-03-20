@@ -4,6 +4,8 @@
 #include <TinyGPS++.h>
 #include <WiFi.h>
 #include <WebSocketsClient.h>
+#include <ArduinoJson.h>
+#include <HTTPClient.h>
 #define GPS_BAUD 9600
 #define GPSRx 16
 #define GPSTx 17
@@ -12,9 +14,11 @@ Adafruit_MPU6050 mpu;
 
 TinyGPSPlus gps;
 
-const char* ssid = "Mino";
-const char* password = "AGoodPass";
-const char* serverAddress = "192.168.151.173";
+const char* ssid = "TP-LINK_7516";
+const char* password = "e0887714303";
+const char* serverAddress = "192.168.0.110";
+const char* webSocketIp = "192.168.0.111";
+const int websocketPort=8080;
 const int serverPort = 8080;
 WebSocketsClient webSocket;
 unsigned long previousMillis = 0;  // Variable to store last time data was sent
@@ -28,7 +32,7 @@ void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
     switch (type) {
         case WStype_CONNECTED:
             Serial.println("Connected to WebSocket server");
-            webSocket.sendTXT("Hello from ESP32");  // Send a test message after connection
+            // webSocket.sendTXT("Hello from ESP32");  // Send a test message after connection
             break;
         case WStype_DISCONNECTED:
             Serial.println("Disconnected from WebSocket server");
@@ -112,19 +116,16 @@ void readSensors(void *params){
   while(1){
     readMpu6050();
     gpsRead();
-    delay(500);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
   }
 }
 void sendWebsocket(void *params){
   while(1){
     webSocket.loop();  // Maintain WebSocket connection
-
     unsigned long currentMillis = millis();
     if (currentMillis - previousMillis >= interval) {
       // Save the last time we sent data
       previousMillis = currentMillis;
-
-      // Measure distance
       String disp="Acceleration: ";
       disp+=String(accel.acceleration.x)+" ";
       disp+=String(accel.acceleration.y)+" ";
@@ -148,8 +149,56 @@ void sendWebsocket(void *params){
       disp+=String(timeHour)+":"+String(timeMinute)+":"+String(timeSecond)+"\n\n";
       webSocket.sendTXT(disp);  // Send distance data via WebSocket
     }
+    vTaskDelay(10 / portTICK_PERIOD_MS);
   }
 }
+void sendHttpRequest(void *params) {
+  while (1) {
+    unsigned long currentMillis = millis();
+    if (currentMillis - previousMillis >= interval) {
+      previousMillis = currentMillis;
+
+      // Create JSON object
+      StaticJsonDocument<256> jsonDoc;
+      jsonDoc["acceleration_x"] = accel.acceleration.x;
+      jsonDoc["acceleration_y"] = accel.acceleration.y;
+      jsonDoc["acceleration_z"] = accel.acceleration.z;
+      jsonDoc["rotation_x"] = gyro.gyro.x;
+      jsonDoc["rotation_y"] = gyro.gyro.y;
+      jsonDoc["rotation_z"] = gyro.gyro.z;
+      jsonDoc["temperature"] = temp.temperature;
+      jsonDoc["latitude"] = latitude;
+      jsonDoc["longitude"] = longtitude;
+      jsonDoc["altitude"] = altitude;
+
+      char timeString[9];
+      snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", timeHour, timeMinute, timeSecond);
+      jsonDoc["time"] = timeString;
+
+      // Serialize JSON to string
+      String jsonPayload;
+      serializeJson(jsonDoc, jsonPayload);
+
+      // Send HTTP POST request
+      HTTPClient http;
+      String serverURL = "http://" + String(serverAddress) + ":" + String(serverPort) + "/data";  // Adjust endpoint
+      http.begin(serverURL);
+      http.addHeader("Content-Type", "application/json");
+
+      int httpResponseCode = http.POST(jsonPayload);
+      if (httpResponseCode > 0) {
+        Serial.print("HTTP Response code: ");
+        Serial.println(httpResponseCode);
+      } else {
+        Serial.print("HTTP Error: ");
+        Serial.println(httpResponseCode);
+      }
+      http.end();
+    }
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+  }
+}
+
 void setup(void) {
   Serial.begin(115200);
   WiFi.begin(ssid, password);
@@ -163,7 +212,7 @@ void setup(void) {
   Serial.print("ESP32 IP: ");
   Serial.println(WiFi.localIP());
 
-  webSocket.begin(serverAddress, serverPort, "/");  // Connect to the WebSocket server
+  webSocket.begin(webSocketIp, websocketPort, "/");  // Connect to the WebSocket server
   webSocket.onEvent(webSocketEvent);  // Attach event handler
   Serial.println("Adafruit MPU6050 test!");
 
@@ -182,9 +231,11 @@ void setup(void) {
   
   gpsSerial.begin(GPS_BAUD,SERIAL_8N1,GPSRx,GPSTx);
   xTaskCreatePinnedToCore(readSensors,"Reading sensors function",2000,NULL, 1, NULL, 0);
-  xTaskCreatePinnedToCore(sendWebsocket,"Sends data to website",10000,NULL, 1, NULL, 1);
+  xTaskCreatePinnedToCore(sendHttpRequest,"Sends data to website",10000,NULL, 2, NULL, 1);
+  // xTaskCreatePinnedToCore(sendWebsocket,"Sends data to website with websocket",10000,NULL, 1, NULL, 1);
 }
 void loop() {
   /* Get new sensor events with the readings */
-  delay(10);
+  vTaskDelay(10 / portTICK_PERIOD_MS);
+
 }
