@@ -98,4 +98,15 @@ def mark_done(task_id):
         db.session.delete(task)
         db.session.commit()
         flash('Task marked as done!', 'success')
+    else:
+        flash('Task not found!', 'danger')
     return redirect(url_for('profile'))
+
+
+# Tasks route (This is the missing route that was needed)
+@app.route('/tasks')
+@login_required
+def tasks():
+    tasks = Task.query.filter_by(user_id=current_user.id).all()
+    return render_template('tasks.html', tasks=tasks)
+

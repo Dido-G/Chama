@@ -27,6 +27,7 @@ class SensorData(db.Model):
     steps = db.Column(db.Integer, nullable=False)
     kilometers = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    
 
     def __repr__(self):
         return f'<SensorData {self.id}>'
