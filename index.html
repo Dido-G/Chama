@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 WebSocket</title>
+</head>
+<body>
+    <h2>ESP32 WebSocket Communication</h2>
+    <input type="text" id="messageInput" placeholder="Type a message">
+    <button onclick="sendMessage()">Send</button>
+    <h3>Messages:</h3>
+    <button id="onOffButton">Turn On</button>
+
+    <div id="messages"></div>
+    <script>
+        let socket = new WebSocket("ws://192.168.0.104:8080");
+
+        socket.onopen = function() {
+            console.log("Connected to WebSocket Server");
+        };
+
+        socket.onmessage = function(event) {
+            console.log("Received message from ESP32: ", event.data);
+            let msgDiv = document.getElementById("messages");
+            msgDiv.innerHTML += "<p>" + event.data + "</p>";
+        };
+
+        function sendMessage() {
+            let message = document.getElementById("messageInput").value;
+            socket.send(message);
+        }
+
+        const button = document.getElementById('onOffButton');
+    let isOn = false;
+
+    function toggleState() {
+      isOn = !isOn;
+      if (isOn) {
+        console.log('On');
+        button.textContent = 'Turn Off';
+        socket.send("HIGH");
+      } else {
+        console.log('Off');
+        button.textContent = 'Turn On';
+        socket.send("LOW");
+      }
+    }
+
+    // Add event listener to call toggleState function on click
+    button.addEventListener('click', toggleState);
+    </script>
+</body>
+</html>
