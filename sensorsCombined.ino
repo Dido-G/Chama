@@ -9,6 +9,7 @@
 #define GPS_BAUD 9600
 #define GPSRx 16
 #define GPSTx 17
+#define callButt 18
 
 Adafruit_MPU6050 mpu;
 
@@ -112,8 +113,46 @@ void gpsRead(){
       Serial.println();
     }
 }
+void checkCallibraion(){
+  if(digitalRead(callButt)){
+    Serial.println("Button callibration clicked");
+    Serial.println("Button callibration clicked");
+    Serial.println("Button callibration clicked");
+    // long accelX_sum = 0, accelY_sum = 0, accelZ_sum = 0;
+    // long gyroX_sum = 0, gyroY_sum = 0, gyroZ_sum = 0;
+    // int readings = 100;  // Number of readings to average
+
+    // for (int i = 0; i < readings; i++) {
+    //   sensors_event_t accel, gyro, temp;
+    //   mpu.getEvent(&accel, &gyro, &temp);
+
+    //   accelX_sum += accel.acceleration.x;
+    //   accelY_sum += accel.acceleration.y;
+    //   accelZ_sum += accel.acceleration.z;
+
+    //   gyroX_sum += gyro.gyro.x;
+    //   gyroY_sum += gyro.gyro.y;
+    //   gyroZ_sum += gyro.gyro.z;
+
+    //   delay(10);  // Short delay between readings
+    // }
+
+    // // Calculate the average values to get the offsets
+    // accelX_offset = accelX_sum / readings;
+    // accelY_offset = accelY_sum / readings;
+    // accelZ_offset = accelZ_sum / readings;
+    
+    // gyroX_offset = gyroX_sum / readings;
+    // gyroY_offset = gyroY_sum / readings;
+    // gyroZ_offset = gyroZ_sum / readings;
+
+    // // Adjust for the accelerometer reading (expect 0G for X and Y, 1G for Z when stationary)
+    // accelZ_offset = accelZ_offset - 9.81;  // Adjust Z-axis to represent gravity (9.81 m/s^2)
+  }
+}
 void readSensors(void *params){
   while(1){
+    checkCallibraion();
     readMpu6050();
     gpsRead();
     vTaskDelay(100 / portTICK_PERIOD_MS);
@@ -215,6 +254,7 @@ void sendHttpRequest(void *params) {
 
 void setup(void) {
   Serial.begin(115200);
+  pinMode(callButt, INPUT_PULLDOWN);
   WiFi.begin(ssid, password);
   // Connect to WiFi
   Serial.print("Connecting to WiFi");
