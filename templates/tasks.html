@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <script>
+        function addTask() {
+            const taskInput = document.getElementById("taskInput").value;
+            if (taskInput.trim() === "") {
+                alert("Please enter a task!");
+                return;
+            }
+            
+            fetch('/add_task', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ task: taskInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            });
+        }
+        
+        function markDone(taskId) {
+            fetch(`/mark_done/${taskId}`, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>Task Manager</h1>
+    <label>Do you want to add new tasks?</label>
+    <input type="text" id="taskInput" placeholder="Enter a task">
+    <button onclick="addTask()">Add Task</button>
+    
+    <h2>To-Do Tasks</h2>
+    <ul id="taskList">
+        {% for task in tasks %}
+        <li>
+            {{ task[1] }} 
+            <button onclick="markDone({{ task[0] }})">Mark as Done</button>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <h2>Completed Tasks</h2>
+    <ul>
+        {% for task in done_tasks %}
+        <li>{{ task[1] }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
+

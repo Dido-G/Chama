@@ -1,7 +1,8 @@
 import datetime
-from app import db, bcrypt 
+from app import db, bcrypt
 from flask_login import UserMixin
 
+# User Model
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
@@ -19,6 +20,7 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return f'<User {self.username}>'
 
+# Sensor Data Model
 class SensorData(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     heart_rate = db.Column(db.Integer, nullable=False)
@@ -28,3 +30,23 @@ class SensorData(db.Model):
 
     def __repr__(self):
         return f'<SensorData {self.id}>'
+
+# To-Do Task Model
+class Task(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    task = db.Column(db.String(255), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Link tasks to users
+    timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    def __repr__(self):
+        return f'<Task {self.task}>'
+
+# Completed Task Model
+class DoneTask(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    task = db.Column(db.String(255), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Link completed tasks to users
+    timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    def __repr__(self):
+        return f'<DoneTask {self.task}>'
