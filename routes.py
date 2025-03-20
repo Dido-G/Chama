@@ -84,7 +84,8 @@ def add_task():
         flash('Task added!', 'success')
     else:
         flash('Task cannot be empty!', 'danger')
-    return redirect(url_for('profile'))
+
+    return redirect(url_for('profile'))  # Reload page
 
 
 # Mark Task as Done
@@ -100,13 +101,23 @@ def mark_done(task_id):
         flash('Task marked as done!', 'success')
     else:
         flash('Task not found!', 'danger')
-    return redirect(url_for('profile'))
+
+    return redirect(url_for('profile'))  # Reload page
 
 
-# Tasks route (This is the missing route that was needed)
+# Clear All Completed Tasks
+@app.route('/clear_done_tasks', methods=['POST'])
+@login_required
+def clear_done_tasks():
+    DoneTask.query.filter_by(user_id=current_user.id).delete()
+    db.session.commit()
+    flash('All completed tasks have been cleared!', 'success')
+    return redirect(url_for('profile'))  # Reload page
+
+
+# Tasks route (List all tasks)
 @app.route('/tasks')
 @login_required
 def tasks():
     tasks = Task.query.filter_by(user_id=current_user.id).all()
     return render_template('tasks.html', tasks=tasks)
-
