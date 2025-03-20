@@ -194,6 +194,20 @@ void sendHttpRequest(void *params) {
         Serial.println(httpResponseCode);
       }
       http.end();
+      HTTPClient http2;
+      serverURL = "http://" + String(webSocketIp) + ":" + String(websocketPort) + "/data";  // Adjust endpoint
+      http2.begin(serverURL);
+      http2.addHeader("Content-Type", "application/json");
+
+      httpResponseCode = http2.POST(jsonPayload);
+      if (httpResponseCode > 0) {
+        Serial.print("HTTP Response code: ");
+        Serial.println(httpResponseCode);
+      } else {
+        Serial.print("HTTP Error: ");
+        Serial.println(httpResponseCode);
+      }
+      http2.end();
     }
     vTaskDelay(100 / portTICK_PERIOD_MS);
   }
