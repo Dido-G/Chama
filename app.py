@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
@@ -12,7 +12,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///your_database_name.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize extensions
+# Initialize extensions
 db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 socketio = SocketIO(app)  # Initialize SocketIO
