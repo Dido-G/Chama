@@ -4,567 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
-    <style>
-        /* Elegant luxury design with sophisticated colors */
-        :root {
-    --rose-gold: #b76e79;
-    --rose-gold-light: #d4a6ad;
-    --rose-gold-dark: #9a5761;
-    --soft-cream: #f9f2ea;
-    --pale-silver: #e5e4e2;
-    --deep-teal: #004d4d;
-    --dusty-blue: #8da7be;
-    --charcoal: #36454f;
-    --charcoal-light: #485b67;
-    --charcoal-dark: #242e36;
-}
+    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/profile.css') }}">
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+    
 
-body {
-    font-family: 'Georgia', serif;
-    background: linear-gradient(135deg, var(--charcoal), var(--charcoal-dark));
-    color: var(--soft-cream);
-    line-height: 1.5;
-    min-height: 100vh;
-}
-
-.container {
-    max-width: 900px;
-    margin: 40px auto;
-    background-color: rgba(54, 69, 79, 0.8);
-    border: 1px solid var(--rose-gold);
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(10px);
-    overflow: hidden;
-}
-
-.profile-header {
-    padding: 40px 20px;
-    text-align: center;
-    background: linear-gradient(to right, var(--charcoal-dark), var(--charcoal));
-    border-bottom: 1px solid var(--rose-gold);
-}
-
-.profile-header h3 {
-    font-size: 1.8rem;
-    font-weight: 300;
-    margin-bottom: 10px;
-    letter-spacing: 1px;
-    color: var(--rose-gold);
-}
-
-.profile-header h5 {
-    font-size: 1rem;
-    font-weight: 400;
-    opacity: 0.9;
-    color: var(--soft-cream);
-    letter-spacing: 0.5px;
-}
-
-.content {
-    padding: 30px;
-}
-
-/* Flash Messages */
-.flash-container {
-    margin-bottom: 24px;
-}
-
-.flash-message {
-    padding: 14px 18px;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    backdrop-filter: blur(5px);
-}
-
-.flash-message.success {
-    background-color: rgba(0, 77, 77, 0.2);
-    border: 1px solid var(--deep-teal);
-    color: var(--soft-cream);
-}
-
-.flash-message.danger {
-    background-color: rgba(154, 87, 97, 0.2);
-    border: 1px solid var(--rose-gold-dark);
-    color: var(--soft-cream);
-}
-
-.flash-message.info {
-    background-color: rgba(141, 167, 190, 0.2);
-    border: 1px solid var(--dusty-blue);
-    color: var(--soft-cream);
-}
-
-.close-btn {
-    cursor: pointer;
-    font-size: 1.2rem;
-    opacity: 0.7;
-    color: var(--rose-gold);
-}
-
-.close-btn:hover {
-    opacity: 1;
-}
-
-/* Profile Stats */
-.profile-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    margin-bottom: 30px;
-}
-
-.stat-card {
-    background-color: rgba(54, 69, 79, 0.5);
-    border: 1px solid rgba(183, 110, 121, 0.3);
-    border-radius: 8px;
-    padding: 20px;
-    text-align: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    border-color: var(--rose-gold);
-}
-
-.stat-label {
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--rose-gold);
-    margin-bottom: 8px;
-}
-
-.stat-value {
-    font-size: 1.4rem;
-    font-weight: 400;
-    color: var(--soft-cream);
-}
-
-/* Section Headers */
-.section-title {
-    font-size: 1.4rem;
-    font-weight: 300;
-    margin: 30px 0 20px 0;
-    color: var(--rose-gold);
-    letter-spacing: 1px;
-    border-bottom: 1px solid rgba(183, 110, 121, 0.3);
-    padding-bottom: 10px;
-}
-
-.subsection-title {
-    font-size: 1.1rem;
-    font-weight: 400;
-    margin: 24px 0 16px 0;
-    color: var(--rose-gold-light);
-    letter-spacing: 0.5px;
-}
-
-/* Task Form */
-.task-form {
-    display: flex;
-    margin-bottom: 24px;
-}
-
-.task-input {
-    flex: 1;
-    padding: 12px 18px;
-    background-color: rgba(249, 242, 234, 0.1);
-    border: 1px solid rgba(183, 110, 121, 0.3);
-    border-right: none;
-    border-radius: 8px 0 0 8px;
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color 0.2s;
-    color: var(--soft-cream);
-    font-family: 'Georgia', serif;
-}
-
-.task-input:focus {
-    border-color: var(--rose-gold);
-    background-color: rgba(249, 242, 234, 0.15);
-}
-
-.task-input::placeholder {
-    color: rgba(249, 242, 234, 0.6);
-}
-
-.add-btn {
-    background-color: var(--rose-gold);
-    color: var(--charcoal-dark);
-    border: none;
-    border-radius: 0 8px 8px 0;
-    padding: 0 24px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-}
-
-.add-btn:hover {
-    background-color: var(--rose-gold-light);
-}
-
-/* Task Lists */
-.task-list {
-    list-style-type: none;
-}
-
-.task-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 16px;
-    margin-bottom: 10px;
-    background-color: rgba(54, 69, 79, 0.5);
-    border: 1px solid rgba(183, 110, 121, 0.3);
-    border-radius: 8px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-}
-
-.task-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    border-color: var(--rose-gold);
-}
-
-.task-text {
-    font-size: 0.95rem;
-    color: var(--soft-cream);
-}
-
-.complete-btn {
-    background-color: transparent;
-    color: var(--rose-gold);
-    border: 1px solid var(--rose-gold);
-    border-radius: 6px;
-    padding: 8px 16px;
-    font-size: 0.85rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.complete-btn:hover {
-    background-color: var(--rose-gold);
-    color: var(--charcoal-dark);
-}
-
-.completed-task {
-    opacity: 0.7;
-}
-
-.completed-task .task-text {
-    text-decoration: line-through;
-    color: rgba(249, 242, 234, 0.6);
-}
-
-.empty-message {
-    text-align: center;
-    padding: 20px;
-    color: rgba(249, 242, 234, 0.6);
-    font-style: italic;
-    background-color: rgba(54, 69, 79, 0.3);
-    border: 1px solid rgba(183, 110, 121, 0.2);
-    border-radius: 8px;
-}
-
-/* Buttons */
-.btn {
-    display: inline-block;
-    padding: 10px 20px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    text-align: center;
-    text-decoration: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.btn-danger {
-    background-color: transparent;
-    color: var(--rose-gold);
-    border: 1px solid var(--rose-gold);
-}
-
-.btn-danger:hover {
-    background-color: var(--rose-gold);
-    color: var(--charcoal-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(183, 110, 121, 0.3);
-}
-
-.clear-container {
-    text-align: center;
-    margin-top: 20px;
-}
-
-.footer {
-    text-align: center;
-    padding: 30px 0;
-    border-top: 1px solid rgba(183, 110, 121, 0.3);
-    margin-top: 40px;
-}
-
-.logo {
-    font-size: 2rem;
-    color: var(--rose-gold);
-    text-align: center;
-    margin-bottom: 15px;
-}
-
-        /* Profile Stats */
-        .profile-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background-color: rgba(26, 38, 66, 0.5);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            border-color: var(--rich-gold);
-        }
-
-        .stat-label {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--rich-gold);
-            margin-bottom: 8px;
-        }
-
-        .stat-value {
-            font-size: 1.4rem;
-            font-weight: 400;
-            color: var(--soft-cream);
-        }
-
-        /* Section Headers */
-        .section-title {
-            font-size: 1.4rem;
-            font-weight: 300;
-            margin: 30px 0 20px 0;
-            color: var(--rich-gold);
-            letter-spacing: 1px;
-            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
-            padding-bottom: 10px;
-        }
-
-        .subsection-title {
-            font-size: 1.1rem;
-            font-weight: 400;
-            margin: 24px 0 16px 0;
-            color: var(--gold-lighter);
-            letter-spacing: 0.5px;
-        }
-
-        /* Task Form */
-        .task-form {
-            display: flex;
-            margin-bottom: 24px;
-        }
-
-        .task-input {
-            flex: 1;
-            padding: 12px 18px;
-            background-color: rgba(248, 240, 227, 0.1);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            border-right: none;
-            border-radius: 8px 0 0 8px;
-            font-size: 0.95rem;
-            outline: none;
-            transition: border-color 0.2s;
-            color: var(--soft-cream);
-            font-family: 'Georgia', serif;
-        }
-
-        .task-input:focus {
-            border-color: var(--rich-gold);
-            background-color: rgba(248, 240, 227, 0.15);
-        }
-
-        .task-input::placeholder {
-            color: rgba(248, 240, 227, 0.6);
-        }
-
-        .add-btn {
-            background-color: var(--rich-gold);
-            color: var(--deep-navy);
-            border: none;
-            border-radius: 0 8px 8px 0;
-            padding: 0 24px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        .add-btn:hover {
-            background-color: var(--gold-lighter);
-        }
-
-        /* Task Lists */
-        .task-list {
-            list-style-type: none;
-        }
-
-        .task-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 16px;
-            margin-bottom: 10px;
-            background-color: rgba(26, 38, 66, 0.5);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            border-radius: 8px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-        }
-
-        .task-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            border-color: var(--rich-gold);
-        }
-
-        .task-text {
-            font-size: 0.95rem;
-            color: var(--soft-cream);
-        }
-
-        .complete-btn {
-            background-color: transparent;
-            color: var(--rich-gold);
-            border: 1px solid var(--rich-gold);
-            border-radius: 6px;
-            padding: 8px 16px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .complete-btn:hover {
-            background-color: var(--rich-gold);
-            color: var(--deep-navy);
-        }
-
-        .completed-task {
-            opacity: 0.7;
-        }
-
-        .completed-task .task-text {
-            text-decoration: line-through;
-            color: rgba(248, 240, 227, 0.6);
-        }
-
-        .empty-message {
-            text-align: center;
-            padding: 20px;
-            color: rgba(248, 240, 227, 0.6);
-            font-style: italic;
-            background-color: rgba(26, 38, 66, 0.3);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            border-radius: 8px;
-        }
-
-        /* Buttons */
-        .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-danger {
-            background-color: transparent;
-            color: var(--rich-gold);
-            border: 1px solid var(--rich-gold);
-        }
-
-        .btn-danger:hover {
-            background-color: var(--rich-gold);
-            color: var(--deep-navy);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
-        }
-
-        .clear-container {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .footer {
-            text-align: center;
-            padding: 30px 0;
-            border-top: 1px solid rgba(212, 175, 55, 0.3);
-            margin-top: 40px;
-        }
-
-        .logo {
-            font-size: 2rem;
-            color: var(--rich-gold);
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 640px) {
-            .container {
-                margin: 0;
-                border-radius: 0;
-                min-height: 100vh;
-            }
-
-            .profile-stats {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
-
-            .content {
-                padding: 20px;
-            }
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -575,7 +18,6 @@ body {
         </div>
 
         <div class="content">
-            <!-- Flash Messages -->
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     <div class="flash-container">
@@ -589,7 +31,6 @@ body {
                 {% endif %}
             {% endwith %}
 
-            <!-- Profile Stats -->
             <div class="profile-stats">
                 <div class="stat-card">
                     <div class="stat-label">Age</div>
@@ -605,16 +46,17 @@ body {
                 </div>
             </div>
 
-            <!-- Tasks Section -->
+            <div class="activity-container" style="text-align: center; margin-top: 20px;">
+                <button class="btn btn-primary start-activity-btn" onclick="startActivity()">Start Activity</button>
+            </div>            
+
             <h2 class="section-title">Task Manager</h2>
 
-            <!-- Task Form -->
             <form action="{{ url_for('add_task') }}" method="POST" class="task-form">
                 <input type="text" name="task" placeholder="Add a new task..." required class="task-input">
                 <button type="submit" class="add-btn">Add</button>
             </form>
 
-            <!-- To-Do Tasks -->
             <h3 class="subsection-title">Pending Tasks</h3>
             {% if tasks %}
                 <ul class="task-list">
@@ -631,7 +73,6 @@ body {
                 <div class="empty-message">You have no pending tasks</div>
             {% endif %}
 
-            <!-- Completed Tasks -->
             <h3 class="subsection-title">Completed Tasks</h3>
             {% if done_tasks %}
                 <ul class="task-list">
@@ -651,7 +92,6 @@ body {
                 <div class="empty-message">No completed tasks yet</div>
             {% endif %}
 
-            <!-- Footer with Logout -->
             <div class="footer">
                 <a href="{{ url_for('logout') }}" class="btn btn-danger">Sign Out</a>
             </div>
@@ -659,7 +99,6 @@ body {
     </div>
 
     <script>
-        // Add functionality to close flash messages
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.close-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
