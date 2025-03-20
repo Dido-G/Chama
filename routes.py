@@ -1,7 +1,8 @@
 from flask import request, redirect, url_for, render_template, flash, jsonify
 from flask_login import login_user, login_required, logout_user, current_user
-from extensions import db, emit  # Import from extensions
+from extensions import db, socketio, emit  # Import from extensions
 from models import User, Task, DoneTask, SensorData
+import datetime
 import requests
 from app import app
 
@@ -46,7 +47,7 @@ def login():
         if user and user.check_password(password): 
             login_user(user)
             flash('Login successful!', 'success')
-            return redirect(url_for('profile'))  
+            return redirect(url_for('profile'))  # Redirect to profile
         
         flash('Invalid username or password!', 'danger')
         return redirect(url_for('login'))
