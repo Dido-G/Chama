@@ -1,10 +1,11 @@
 from flask import request, redirect, url_for, render_template, flash
 from flask_login import login_user, login_required, logout_user, current_user
-from extensions import db, socketio  # Import from extensions
+from extensions import db, socketio, emit  # Import from extensions
 from models import User, Task, DoneTask, SensorData
-from flask_socketio import emit
 import datetime
+import requests
 from app import app
+
 
 # Home route
 @app.route('/')
@@ -98,7 +99,7 @@ def mark_done(task_id):
     else:
         flash('Task not found!', 'danger')
 
-    return redirect(url_for('profile'))  # Reload page
+    return redirect(url_for('profile'))  
 
 # Clear All Completed Tasks
 @app.route('/clear_done_tasks', methods=['POST'])
@@ -109,34 +110,53 @@ def clear_done_tasks():
     flash('All completed tasks have been cleared!', 'success')
     return redirect(url_for('profile'))  # Reload page
 
-# Tasks route (List all tasks)
+
 @app.route('/tasks')
 @login_required
 def tasks():
     tasks = Task.query.filter_by(user_id=current_user.id).all()
     return render_template('tasks.html', tasks=tasks)
 
-# WebSocket route for handling sensor data from ESP32
-@socketio.on('sensor_data')
+import json
+@socketio.on('data')
 def handle_sensor_data(data):
-    print(f"Received data from ESP32: {data}")
+    try:
+        if isinstance(data, str):
+            parsed_data = json.loads(data)  # Convert string to JSON
+        elif isinstance(data, dict):
+            parsed_data = data
+        else:
+            raise ValueError("Invalid data format")
 
-    heart_rate = data.get('heart_rate')  # Get heart rate from data
-    steps = data.get('steps')            # Get steps from data
-    kilometers = data.get('kilometers')  # Get kilometers from data
+        print(f"Received JSON Data: {parsed_data}")
 
-    if heart_rate is not None and steps is not None and kilometers is not None:
-        # Save data to database
+        # Extract data safely
+        temperature = parsed_data.get('temperature', None)
+        latitude = parsed_data.get('latitude', None)
+        longitude = parsed_data.get('longitude', None)
+
+        # Check if essential fields exist
+        if temperature is None or latitude is None or longitude is None:
+            raise ValueError("Missing required sensor data")
+
+        # Save to database
         sensor_data = SensorData(
-            heart_rate=heart_rate,
-            steps=steps,
-            kilometers=kilometers,
-            timestamp=datetime.datetime.utcnow()
+            temperature=temperature,
+            latitude=latitude,
+            longitude=longitude
         )
         db.session.add(sensor_data)
         db.session.commit()
 
-        # Send response back to the ESP32 client
-        emit('response', {'message': 'Data saved successfully!'})
-    else:
-        emit('response', {'error': 'Incomplete data received'})
+        print(f"Sensor data saved: {sensor_data}")
+        emit('response', {'status': 'Data saved successfully'})
+
+    except json.JSONDecodeError as e:
+        print(f"Error parsing JSON: {e}")
+        emit('response', {'status': 'Invalid JSON format'})
+    except ValueError as e:
+        print(f"Data Error: {e}")
+        emit('response', {'status': f'Error: {str(e)}'})
+    except Exception as e:
+        print(f"Database Error: {e}")
+        emit('response', {'status': 'Error saving data'})

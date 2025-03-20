@@ -12,7 +12,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 bcrypt.init_app(app)  # Only initialize bcrypt once
 login_manager.init_app(app)
-socketio.init_app(app)  # Initialize SocketIO
+socketio.init_app(app, cors_allowed_origins="*")  # Allow all origins
 
 # Import models and routes
 from routes import *  
@@ -29,4 +29,4 @@ with app.app_context():
 
 # Run the app with socketio
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    socketio.run(app, host='0.0.0.0', port=8080, debug=True)

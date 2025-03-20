@@ -1,0 +1,27 @@
+void sendWebsocket(void *params){
+  while(1){
+    webSocket.loop();  // Maintain WebSocket connection
+
+    unsigned long currentMillis = millis();
+    if (currentMillis - previousMillis >= interval) {
+      previousMillis = currentMillis;
+
+      // Construct JSON string properly
+      String jsonPayload = "{";
+      jsonPayload += "\"acceleration_x\": " + String(accel.acceleration.x) + ",";
+      jsonPayload += "\"acceleration_y\": " + String(accel.acceleration.y) + ",";
+      jsonPayload += "\"acceleration_z\": " + String(accel.acceleration.z) + ",";
+      jsonPayload += "\"rotation_x\": " + String(gyro.gyro.x) + ",";
+      jsonPayload += "\"rotation_y\": " + String(gyro.gyro.y) + ",";
+      jsonPayload += "\"rotation_z\": " + String(gyro.gyro.z) + ",";
+      jsonPayload += "\"temperature\": " + String(temp.temperature) + ",";
+      jsonPayload += "\"latitude\": " + String(latitude) + ",";
+      jsonPayload += "\"longitude\": " + String(longtitude) + ",";
+      jsonPayload += "\"altitude\": " + String(altitude) + ",";
+      jsonPayload += "\"time\": \"" + String(timeHour) + ":" + String(timeMinute) + ":" + String(timeSecond) + "\"";
+      jsonPayload += "}";
+
+      webSocket.sendTXT(jsonPayload);  // Send JSON data via WebSocket
+    }
+  }
+}

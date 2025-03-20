@@ -23,10 +23,14 @@ class User(UserMixin, db.Model):
 # Sensor Data Model
 class SensorData(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    heart_rate = db.Column(db.Integer, nullable=False)
-    steps = db.Column(db.Integer, nullable=False)
+    #heart_rate = db.Column(db.Integer, nullable=False)
+    
+    temperature = db.Column(db.Float, nullable=False)
     kilometers = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    latitude = db.Column(db.Float, nullable = False)
+    longitude = db.Column(db.Float, nullable = False)
+
 
     def __repr__(self):
         return f'<SensorData {self.id}>'
