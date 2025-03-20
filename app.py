@@ -12,14 +12,13 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize extensions
 db.init_app(app)
-bcrypt.init_app(app)  # Only initialize bcrypt once
+bcrypt.init_app(app)  
 login_manager.init_app(app)
-socketio.init_app(app, cors_allowed_origins="*")  # Ensure CORS is allowed
+socketio.init_app(app, cors_allowed_origins="*")
 
-# Import models and routes
 from routes import *  
 
-# User loader for flask-login
+
 @login_manager.user_loader
 def load_user(user_id):
     from models import User
