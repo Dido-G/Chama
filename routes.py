@@ -1,7 +1,9 @@
 from flask import request, redirect, url_for, render_template, flash
 from flask_login import login_user, login_required, logout_user, current_user
-from app import app, db
-from models import User, Task, DoneTask
+from app import app, db, socketio
+from models import User, Task, DoneTask, SensorData
+from flask_socketio import emit
+import datetime
 
 
 # Home route
@@ -110,3 +112,28 @@ def tasks():
     tasks = Task.query.filter_by(user_id=current_user.id).all()
     return render_template('tasks.html', tasks=tasks)
 
+
+# WebSocket route for handling sensor data from ESP32
+@socketio.on('sensor_data')
+def handle_sensor_data(data):
+    print(f"Received data from ESP32: {data}")
+
+    heart_rate = data.get('heart_rate')  # Get heart rate from data
+    steps = data.get('steps')            # Get steps from data
+    kilometers = data.get('kilometers')  # Get kilometers from data
+
+    if heart_rate is not None and steps is not None and kilometers is not None:
+        # Save data to database
+        sensor_data = SensorData(
+            heart_rate=heart_rate,
+            steps=steps,
+            kilometers=kilometers,
+            timestamp=datetime.datetime.utcnow()
+        )
+        db.session.add(sensor_data)
+        db.session.commit()
+
+        # Send response back to the ESP32 client
+        emit('response', {'message': 'Data saved successfully!'})
+    else:
+        emit('response', {'error': 'Incomplete data received'})
