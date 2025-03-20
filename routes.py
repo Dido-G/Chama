@@ -1,16 +1,15 @@
 from flask import request, redirect, url_for, render_template, flash
 from flask_login import login_user, login_required, logout_user, current_user
-from app import app, db, socketio
+from extensions import db, socketio  # Import from extensions
 from models import User, Task, DoneTask, SensorData
 from flask_socketio import emit
 import datetime
-
+from app import app
 
 # Home route
 @app.route('/')
 def home():
     return render_template('home.html')
-
 
 # Register page
 @app.route('/register', methods=['GET', 'POST'])
@@ -36,7 +35,6 @@ def register():
     
     return render_template('register.html')
 
-
 # Login Route
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -55,7 +53,6 @@ def login():
 
     return render_template('login.html')
 
-
 # Profile Route
 @app.route('/profile')
 @login_required 
@@ -64,7 +61,6 @@ def profile():
     done_tasks = DoneTask.query.filter_by(user_id=current_user.id).all()
     return render_template('profile.html', user=current_user, tasks=tasks, done_tasks=done_tasks)
 
-
 # Logout Route
 @app.route('/logout')
 @login_required
@@ -72,7 +68,6 @@ def logout():
     logout_user()
     flash('Logged out successfully!', 'info')
     return redirect(url_for('login'))
-
 
 # Add Task
 @app.route('/add_task', methods=['POST'])
@@ -88,7 +83,6 @@ def add_task():
         flash('Task cannot be empty!', 'danger')
 
     return redirect(url_for('profile'))  # Reload page
-
 
 # Mark Task as Done
 @app.route('/mark_done/<int:task_id>', methods=['POST'])
@@ -106,7 +100,6 @@ def mark_done(task_id):
 
     return redirect(url_for('profile'))  # Reload page
 
-
 # Clear All Completed Tasks
 @app.route('/clear_done_tasks', methods=['POST'])
 @login_required
@@ -116,14 +109,12 @@ def clear_done_tasks():
     flash('All completed tasks have been cleared!', 'success')
     return redirect(url_for('profile'))  # Reload page
 
-
 # Tasks route (List all tasks)
 @app.route('/tasks')
 @login_required
 def tasks():
     tasks = Task.query.filter_by(user_id=current_user.id).all()
     return render_template('tasks.html', tasks=tasks)
-
 
 # WebSocket route for handling sensor data from ESP32
 @socketio.on('sensor_data')

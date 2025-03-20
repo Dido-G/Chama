@@ -1,5 +1,5 @@
 import datetime
-from app import db, bcrypt
+from extensions import db, bcrypt  # Import from extensions instead of app
 from flask_login import UserMixin
 
 # User Model
@@ -27,7 +27,6 @@ class SensorData(db.Model):
     steps = db.Column(db.Integer, nullable=False)
     kilometers = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    
 
     def __repr__(self):
         return f'<SensorData {self.id}>'

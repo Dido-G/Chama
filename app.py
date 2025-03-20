@@ -1,8 +1,5 @@
 from flask import Flask, render_template, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
-from flask_bcrypt import Bcrypt
-from flask_socketio import SocketIO
+from extensions import db, bcrypt, login_manager, socketio
 
 app = Flask(__name__)
 
@@ -12,20 +9,18 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///your_database_name.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize extensions
-# Initialize extensions
-db = SQLAlchemy(app)
-bcrypt = Bcrypt(app)
-bcrypt = Bcrypt(app)
-login_manager = LoginManager(app)
-socketio = SocketIO(app)  # Initialize SocketIO
+db.init_app(app)
+bcrypt.init_app(app)  # Only initialize bcrypt once
+login_manager.init_app(app)
+socketio.init_app(app)  # Initialize SocketIO
 
 # Import models and routes
-from models import User, SensorData, Task, DoneTask
 from routes import *  
 
 # User loader for flask-login
 @login_manager.user_loader
 def load_user(user_id):
+    from models import User
     return User.query.get(int(user_id))
 
 # Create all database tables
@@ -34,4 +29,4 @@ with app.app_context():
 
 # Run the app with socketio
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)  # Use socketio.run() instead of app.run()
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
