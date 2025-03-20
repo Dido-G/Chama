@@ -1,4 +1,4 @@
-from flask import request, redirect, url_for, render_template, flash
+from flask import request, redirect, url_for, render_template, flash, jsonify
 from flask_login import login_user, login_required, logout_user, current_user
 from extensions import db, socketio, emit  # Import from extensions
 from models import User, Task, DoneTask, SensorData
@@ -117,46 +117,36 @@ def tasks():
     tasks = Task.query.filter_by(user_id=current_user.id).all()
     return render_template('tasks.html', tasks=tasks)
 
-import json
-@socketio.on('data')
-def handle_sensor_data(data):
+@app.route('/data', methods=['POST'])
+def sensor_data():
     try:
-        if isinstance(data, str):
-            parsed_data = json.loads(data)  # Convert string to JSON
-        elif isinstance(data, dict):
-            parsed_data = data
-        else:
-            raise ValueError("Invalid data format")
+        # Get the incoming JSON data
+        data = request.get_json()
 
-        print(f"Received JSON Data: {parsed_data}")
+        # Extract individual data points (for example)
+        acceleration_x = data['acceleration_x']
+        acceleration_y = data['acceleration_y']
+        acceleration_z = data['acceleration_z']
+        rotation_x = data['rotation_x']
+        rotation_y = data['rotation_y']
+        rotation_z = data['rotation_z']
+        temperature = data['temperature']
+        latitude = data['latitude']
+        longitude = data['longitude']
+        altitude = data['altitude']
+        time = data['time']
 
-        # Extract data safely
-        temperature = parsed_data.get('temperature', None)
-        latitude = parsed_data.get('latitude', None)
-        longitude = parsed_data.get('longitude', None)
+        # Print received data for testing
+        print(f"Received Data: Acceleration ({acceleration_x}, {acceleration_y}, {acceleration_z}), "
+              f"Rotation ({rotation_x}, {rotation_y}, {rotation_z}), Temperature: {temperature}, "
+              f"Latitude: {latitude}, Longitude: {longitude}, Altitude: {altitude}, Time: {time}")
 
-        # Check if essential fields exist
-        if temperature is None or latitude is None or longitude is None:
-            raise ValueError("Missing required sensor data")
+        # You can process or save the data here, such as saving it to a database
 
-        # Save to database
-        sensor_data = SensorData(
-            temperature=temperature,
-            latitude=latitude,
-            longitude=longitude
-        )
-        db.session.add(sensor_data)
-        db.session.commit()
+        # Respond with a success message
+        return jsonify({"status": "success", "message": "Data received successfully"}), 200
 
-        print(f"Sensor data saved: {sensor_data}")
-        emit('response', {'status': 'Data saved successfully'})
-
-    except json.JSONDecodeError as e:
-        print(f"Error parsing JSON: {e}")
-        emit('response', {'status': 'Invalid JSON format'})
-    except ValueError as e:
-        print(f"Data Error: {e}")
-        emit('response', {'status': f'Error: {str(e)}'})
     except Exception as e:
-        print(f"Database Error: {e}")
-        emit('response', {'status': 'Error saving data'})
+        # Handle errors if any
+        print(f"Error: {e}")
+        return jsonify({"status": "error", "message": "Failed to receive data"}), 500

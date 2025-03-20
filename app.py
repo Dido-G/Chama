@@ -1,8 +1,10 @@
 from flask import Flask, render_template, redirect, url_for
 from extensions import db, bcrypt, login_manager, socketio
+from flask_cors import CORS
+
 
 app = Flask(__name__)
-
+CORS(app)
 # App configurations
 app.config['SECRET_KEY'] = 'your_secret_key_here'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///your_database_name.db'
@@ -12,7 +14,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 bcrypt.init_app(app)  # Only initialize bcrypt once
 login_manager.init_app(app)
-socketio.init_app(app, cors_allowed_origins="*")  # Allow all origins
+socketio.init_app(app, cors_allowed_origins="*")  # Ensure CORS is allowed
 
 # Import models and routes
 from routes import *  
@@ -29,4 +31,5 @@ with app.app_context():
 
 # Run the app with socketio
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=8080, debug=True)
+    socketio.run(app, debug=True, host="0.0.0.0", port=8080)
+
