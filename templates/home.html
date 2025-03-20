@@ -5,14 +5,109 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        :root {
+            --rose-gold: #BD8C7D;
+            --bright-rose-gold: #E8C6B6;
+            --soft-teal: #6AACB8;
+            --rich-cream: #F9F5F0;
+            --pale-lilac: #E0D3EB;
+            --deep-slate: #2F3542;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--pale-lilac), var(--rich-cream));
+            color: var(--deep-slate);
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+        
+        .welcome-container {
+            background-color: rgba(249, 245, 240, 0.9);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(189, 140, 125, 0.2);
+            backdrop-filter: blur(10px);
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        h1 {
+            color: var(--deep-slate);
+            font-weight: 300;
+            letter-spacing: 1.2px;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            border-bottom: 2px solid var(--rose-gold);
+            padding-bottom: 15px;
+        }
+        
+        .btn-luxury {
+            background: linear-gradient(to right, var(--rose-gold), var(--bright-rose-gold));
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            margin: 10px;
+            font-weight: 400;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 14px;
+            border-radius: 30px;
+        }
+        
+        .btn-luxury:hover {
+            background: linear-gradient(to right, var(--bright-rose-gold), var(--rose-gold));
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(189, 140, 125, 0.4);
+        }
+        
+        .btn-luxury-alt {
+            background: transparent;
+            color: var(--rose-gold);
+            border: 1.5px solid var(--rose-gold);
+            padding: 12px 28px;
+            margin: 10px;
+            font-weight: 400;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 14px;
+            border-radius: 30px;
+        }
+        
+        .btn-luxury-alt:hover {
+            background: linear-gradient(to right, var(--rose-gold), var(--bright-rose-gold));
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(189, 140, 125, 0.4);
+        }
+        
+        .logo {
+            margin-bottom: 20px;
+            font-size: 3rem;
+            color: var(--rose-gold);
+        }
+        
+        p {
+            color: var(--deep-slate);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+    </style>
 </head>
-<body class="d-flex align-items-center justify-content-center vh-100 bg-light">
-
-    <div class="text-center">
-        <h1 class="mb-4">Welcome to My App</h1>
-        <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg me-2">Login</a>
-        <a href="{{ url_for('register') }}" class="btn btn-success btn-lg">Register</a>
+<body>
+    <div class="welcome-container text-center">
+        <div class="logo">✦</div>
+        <h1>Welcome</h1>
+        <div>
+            <a href="{{ url_for('login') }}" class="btn btn-luxury">Sign In</a>
+            <a href="{{ url_for('register') }}" class="btn btn-luxury-alt">Create Account</a>
+        </div>
     </div>
-
 </body>
 </html>
