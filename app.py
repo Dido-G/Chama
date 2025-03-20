@@ -2,7 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
-from models import User, SensorData
+
 
 app = Flask(__name__)
 
@@ -18,6 +18,7 @@ from routes import *
 
 @login_manager.user_loader
 def load_user(user_id):
+    from models import User, SensorData
     return User.query.get(int(user_id))
 
 with app.app_context():

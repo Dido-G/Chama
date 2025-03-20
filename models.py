@@ -35,7 +35,7 @@ class SensorData(db.Model):
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     task = db.Column(db.String(255), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Link tasks to users
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     def __repr__(self):
@@ -45,7 +45,7 @@ class Task(db.Model):
 class DoneTask(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     task = db.Column(db.String(255), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Link completed tasks to users
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False) 
     timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     def __repr__(self):
