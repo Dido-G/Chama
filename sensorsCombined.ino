@@ -17,8 +17,8 @@ Adafruit_MPU6050 mpu;
 
 TinyGPSPlus gps;
 
-const char* ssid = "Galaxy A125740";
-const char* password = "12345678";
+const char* ssid = "Mino";
+const char* password = "AGoodPass";
 const char* serverAddress = "192.168.10.188";
 const char* webSocketIp = "192.168.10.173";
 const int websocketPort=8080;
@@ -40,9 +40,10 @@ HardwareSerial gpsSerial(2);
 int stepCount = 0;
 bool stepDetected = false;
 float previousAccZ = 0;
-float stepThreshold = 1.2; // Threshold for step detection
+float stepThreshold = 1.5; // Threshold for step detection
 float stepLength = 0.73;
 float totalDistance = 0;
+float prevMagnitude = 0;
 
 void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
     switch (type) {
@@ -67,22 +68,28 @@ void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
             break;
     }
 }
+void detectStep(float accX, float accY, float accZ) {
+  // Calculate the magnitude of acceleration (independent of orientation)
+  float magnitude = sqrt(accX * accX + accY * accY + accZ * accZ);
 
-void detectStep(float accZ) {
-  if (!stepDetected && accZ > stepThreshold) {
+  if (!stepDetected && (magnitude - prevMagnitude) > 1.2) { 
     stepCount++;
-    totalDistance = stepCount * stepLength;
+    totalDistance += stepLength;
+
     Serial.print("Steps: ");
-    Serial.println(stepCount);
-    Serial.print("Distance Walked: ");
+    Serial.print(stepCount);
+    Serial.print(" | Distance: ");
     Serial.print(totalDistance);
     Serial.println(" meters");
+
     stepDetected = true;
-  } else if (accZ < stepThreshold) {
+  } 
+  else if ((magnitude - prevMagnitude) < 0.5) {
     stepDetected = false;
   }
-}
 
+  prevMagnitude = magnitude;
+}
 void readMpu6050(){
   mpu.getEvent(&accel, &gyro, &temp);
   accel.acceleration.x-=accelX_offset;
@@ -94,28 +101,28 @@ void readMpu6050(){
   gyro.gyro.z-=gyroZ_offset;
 
   /* Print out the values */
-  // Serial.print("Acceleration X: ");
-  // Serial.print(accel.acceleration.x);
-  // Serial.print(", Y: ");
-  // Serial.print(accel.acceleration.y);
-  // Serial.print(", Z: ");
-  // Serial.print(accel.acceleration.z);
-  // Serial.println(" m/s^2");
+  Serial.print("Acceleration X: ");
+  Serial.print(accel.acceleration.x);
+  Serial.print(", Y: ");
+  Serial.print(accel.acceleration.y);
+  Serial.print(", Z: ");
+  Serial.print(accel.acceleration.z);
+  Serial.println(" m/s^2");
 
-  // Serial.print("Rotation X: ");
-  // Serial.print(gyro.gyro.x);
-  // Serial.print(", Y: ");
-  // Serial.print(gyro.gyro.y);
-  // Serial.print(", Z: ");
-  // Serial.print(gyro.gyro.z);
-  // Serial.println(" rad/s");
+  Serial.print("Rotation X: ");
+  Serial.print(gyro.gyro.x);
+  Serial.print(", Y: ");
+  Serial.print(gyro.gyro.y);
+  Serial.print(", Z: ");
+  Serial.print(gyro.gyro.z);
+  Serial.println(" rad/s");
 
-  // Serial.print("Temperature: ");
-  // Serial.print(temp.temperature);
-  // Serial.println(" degC");
+  Serial.print("Temperature: ");
+  Serial.print(temp.temperature);
+  Serial.println(" degC");
 
-  // Serial.println("");
-  detectStep(accel.acceleration.z);
+  Serial.println("");
+  detectStep(accel.acceleration.z,accel.acceleration.x,accel.acceleration.y);
 }
 void gpsRead(){
 
@@ -270,10 +277,6 @@ void sendHttpRequest(void *params) {
       jsonDoc["latitude"] = latitude;
       jsonDoc["longitude"] = longtitude;
       jsonDoc["altitude"] = altitude;
-
-      char timeString[9];
-      snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", timeHour, timeMinute, timeSecond);
-      jsonDoc["time"] = timeString;
       jsonDoc["steps"]= stepCount;
       //@TODO add the uv intensity here!!!
 
