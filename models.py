@@ -37,11 +37,6 @@ class SensorData(db.Model):
     rotation_y = db.Column(db.Float, nullable=True)
     rotation_z = db.Column(db.Float, nullable=True)
 
-    @property
-    def timestamp_str(self):
-        """Return the timestamp as an ISO format string"""
-        return self.timestamp.isoformat() if self.timestamp else None
-
     def __repr__(self):
         return f'<SensorData {self.id}>'
 
