@@ -290,6 +290,59 @@ body {
     margin-top: 15px;
 }
 
+/*Chatbot styling */
+.custom-chatbot-trigger {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(to right, var(--rose-gold), var(--bright-rose-gold));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(189, 140, 125, 0.4);
+    z-index: 999;
+    transition: transform 0.3s, box-shadow 0.3s;
+    font-size: 24px;
+}
+
+.custom-chatbot-trigger:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(189, 140, 125, 0.5);
+}
+
+/* Hide the default chatling button */
+.chatling-launcher-frame {
+    display: none !important;
+}
+
+/* Style the Chatling container */
+#chatling-container {
+    border-radius: 16px !important;
+    box-shadow: 0 15px 35px rgba(189, 140, 125, 0.3) !important;
+    overflow: hidden !important;
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+    #chatling-container {
+        width: 90% !important;
+        right: 5% !important;
+        bottom: 80px !important;
+    }
+    
+    .custom-chatbot-trigger {
+        bottom: 20px;
+        right: 20px;
+    }
+} 
+
+
+
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }

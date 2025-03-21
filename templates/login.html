@@ -110,9 +110,9 @@
         }
         
         .alert-luxury-danger {
-    background-color: rgba(160, 0, 0, 0.1); /* Soft luxury crimson */
-    border: 1px solid rgba(160, 0, 0, 0.3); /* Premium border */
-    color: #A00000; /* Luxury crimson text */
+    background-color: rgba(160, 0, 0, 0.1);
+    border: 1px solid rgba(160, 0, 0, 0.3); 
+    color: #A00000;
     border-radius: 10px;
     padding: 12px;
     margin-bottom: 20px;
@@ -125,7 +125,7 @@
         <div class="logo">✦</div>
         <h3>Sign In</h3>
 
-        <!-- Display Flash Messages (Error in red) -->
+        
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <div class="alert-luxury-danger">

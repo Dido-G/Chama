@@ -2,7 +2,6 @@ import datetime
 from extensions import db, bcrypt
 from flask_login import UserMixin
 
-# User Model
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
@@ -20,16 +19,28 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return f'<User {self.username}>'
 
-# Sensor Data Model
 class SensorData(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     #heart_rate = db.Column(db.Integer, nullable=False)
-    temperature = db.Column(db.Float, nullable=False)
-    kilometers = db.Column(db.Float, nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    latitude = db.Column(db.Float, nullable = False)
-    longitude = db.Column(db.Float, nullable = False)
 
+    temperature = db.Column(db.Float, nullable=False)
+    kilometers = db.Column(db.Float, default=0.0)
+    timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    latitude = db.Column(db.Float, nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
+    steps = db.Column(db.Integer, nullable=False)
+
+    acceleration_x = db.Column(db.Float, nullable=True)
+    acceleration_y = db.Column(db.Float, nullable=True)
+    acceleration_z = db.Column(db.Float, nullable=True)
+    rotation_x = db.Column(db.Float, nullable=True)
+    rotation_y = db.Column(db.Float, nullable=True)
+    rotation_z = db.Column(db.Float, nullable=True)
+
+    @property
+    def timestamp_str(self):
+        """Return the timestamp as an ISO format string"""
+        return self.timestamp.isoformat() if self.timestamp else None
 
     def __repr__(self):
         return f'<SensorData {self.id}>'
@@ -40,7 +51,7 @@ class Task(db.Model):
     task = db.Column(db.String(255), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-
+    
     def __repr__(self):
         return f'<Task {self.task}>'
 
