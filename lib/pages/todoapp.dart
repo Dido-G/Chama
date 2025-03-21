@@ -3,13 +3,13 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(TodoApp()); // Removed the 'const' keyword
+  runApp(TodoApp());
 }
 
 class TodoApp extends StatefulWidget {
   static List<Map<String, dynamic>> tasks = [];
 
-  const TodoApp({super.key}); // Static to share across pages
+  const TodoApp({super.key}); // Static list to share across pages
 
   @override
   _TodoAppState createState() => _TodoAppState();
@@ -25,7 +25,7 @@ class _TodoAppState extends State<TodoApp> {
     }
   }
 
-  // Function to add smart gadgets with name, age, height, and weight
+  // Function to add smart gadgets with name, weight
   void addSmartGadget(String gadgetName, double weight) {
     if (gadgetName.isNotEmpty) {
       setState(() {
@@ -118,7 +118,7 @@ class _TodoAppState extends State<TodoApp> {
                 children: [
                   TextField(
                     controller: gadgetController,
-                    decoration: InputDecoration(hintText: "Enter sport you are going to train ..."),
+                    decoration: InputDecoration(hintText: "Enter gadget name..."),
                   ),
                   SizedBox(height: 10),
                   Text("Gadget Weight: ${gadgetWeight.toStringAsFixed(1)}"),

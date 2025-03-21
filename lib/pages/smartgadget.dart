@@ -1,6 +1,8 @@
- import 'package:flutter/material.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:web_socket_channel/status.dart' as status;
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:async';
+import 'dart:math';
 
 class SmartGadget extends StatefulWidget {
   const SmartGadget({Key? key}) : super(key: key);
@@ -10,117 +12,197 @@ class SmartGadget extends StatefulWidget {
 }
 
 class _SmartGadgetState extends State<SmartGadget> {
-  late WebSocketChannel channel;
+  // Sensor Data Variables
+  String time = "Loading...";
+  String accelerationX = "Loading...";
+  String accelerationY = "Loading...";
+  String accelerationZ = "Loading...";
+  String rotationX = "Loading...";
+  String rotationY = "Loading...";
+  String rotationZ = "Loading...";
+  String temperature = "Loading...";
+  String latitude = "Loading...";
+  String longitude = "Loading...";
+  String altitude = "Loading...";
+  String aiResponse = "Awaiting AI feedback...";
+  String combinedAcceleration = "Loading...";
+  String location = "Loading...";
+  String steps = "Loading...";
 
-  String time = "Waiting for data...";
-  String acceleration = "Waiting for data...";
-  String rotation = "Waiting for data...";
-  String temperature = "Waiting for data...";
-  String latitude = "Waiting for data...";
-  String longitude = "Waiting for data...";
-  String altitude = "Waiting for data...";
+  final String sensorApiUrl = 'http://192.168.10.188:8080/api/sensor/latest';
+  final String aiApiUrl =
+      'https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent';
+
+  Timer? _timer;
+  TextEditingController promptController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    connectWebSocket();
-  }
-
-  void connectWebSocket() {
-    channel = WebSocketChannel.connect(
-      Uri.parse('ws://192.168.0.111:8080/'),
-    );
-
-    channel.stream.listen(
-      (message) {
-        if (mounted) {
-          parseSensorData(message);
-        }
-      },
-      onError: (error) {
-        if (mounted) {
-          setState(() {
-            time = "Error receiving data";
-            acceleration = "Error";
-            rotation = "Error";
-            temperature = "Error";
-            latitude = "Error";
-            longitude = "Error";
-            altitude = "Error";
-          });
-        }
-      },
-      onDone: () {
-        if (mounted) {
-          print("WebSocket connection closed. Reconnecting...");
-          Future.delayed(Duration(seconds: 3), connectWebSocket);
-        }
-      },
-    );
-  }
-
-  void parseSensorData(String message) {
-    List<String> lines = message.split("\n");
-
-    String acc = "", rot = "", temp = "", lat = "", lon = "", alt = "", t = "";
-
-    for (String line in lines) {
-      if (line.startsWith("Acceleration:")) {
-        acc = line.replaceAll("Acceleration: ", "");
-      } else if (line.startsWith("Rotation:")) {
-        rot = line.replaceAll("Rotation: ", "");
-      } else if (line.startsWith("Temperature:")) {
-        temp = line.replaceAll("Temperature: ", "");
-      } else if (line.startsWith("Latitude:")) {
-        lat = line.replaceAll("Latitude: ", "");
-      } else if (line.startsWith("Longtitude:")) {
-        lon = line.replaceAll("Longtitude: ", "");
-      } else if (line.startsWith("Altitude:")) {
-        alt = line.replaceAll("Altitude: ", "");
-      } else if (line.startsWith("Time:")) {
-        t = line.replaceAll("Time: ", "");
-      }
-    }
-
-    if (mounted) {
-      setState(() {
-        time = t;
-        acceleration = acc;
-        rotation = rot;
-        temperature = temp;
-        latitude = lat;
-        longitude = lon;
-        altitude = alt;
-      });
-    }
+    fetchSensorData();
+    startAutoRefresh();
   }
 
   @override
   void dispose() {
-    channel.sink.close(status.goingAway);
+    _timer?.cancel();
     super.dispose();
+  }
+
+  // Auto refresh sensor data every 3 seconds
+  void startAutoRefresh() {
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      if (mounted) {
+        fetchSensorData();
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  // Fetch sensor data from API
+  Future<void> fetchSensorData() async {
+    if (!mounted) return;
+
+    try {
+      final response = await http.get(Uri.parse(sensorApiUrl)).timeout(
+            const Duration(seconds: 5),
+            onTimeout: () => http.Response('Error', 408),
+          );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        var data = jsonDecode(response.body);
+
+        if (mounted) {
+          setState(() {
+            time = data['time'] ?? "N/A";
+            accelerationX = data['acceleration_x'].toString();
+            accelerationY = data['acceleration_y'].toString();
+            accelerationZ = data['acceleration_z'].toString();
+            rotationX = data['rotation_x'].toString();
+            rotationY = data['rotation_y'].toString();
+            rotationZ = data['rotation_z'].toString();
+            temperature = "${data['temperature']}°C";
+            latitude = data['latitude'].toString();
+            longitude = data['longitude'].toString();
+            altitude = data['altitude'].toString();
+            steps = data['steps'].toString();
+
+            // Calculate combined acceleration magnitude
+            double x = double.tryParse(accelerationX) ?? 0.0;
+            double y = double.tryParse(accelerationY) ?? 0.0;
+            double z = double.tryParse(accelerationZ) ?? 0.0;
+            double magnitude = sqrt(x * x + y * y + z * z);
+            combinedAcceleration = magnitude.toStringAsFixed(2);
+
+            // Construct location text
+            location =
+                "Latitude: $latitude, Longitude: $longitude, Altitude: $altitude meters";
+          });
+
+          sendToAI("Is this a good position?");
+        }
+      } else {
+        setErrorState();
+      }
+    } catch (e) {
+      setErrorState();
+    }
+  }
+
+  // Send sensor data + prompt to AI for analysis
+  Future<void> sendToAI(String prompt) async {
+    if (!mounted) return;
+
+    const String apiKey = "YOUR_API_KEY_HERE"; // Replace with actual API key
+    final Uri uri = Uri.parse('$aiApiUrl?key=$apiKey');
+
+    try {
+      final response = await http.post(
+        uri,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text":
+                      "$prompt\n\nSensor Data:\nTime: $time\nAcceleration X: $accelerationX\nAcceleration Y: $accelerationY\nAcceleration Z: $accelerationZ\nCombined Acceleration: $combinedAcceleration\nRotation X: $rotationX\nRotation Y: $rotationY\nRotation Z: $rotationZ\nTemperature: $temperature\nLatitude: $latitude\nLongitude: $longitude\nAltitude: $altitude\nSteps: $steps"
+                }
+              ]
+            }
+          ]
+        }),
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        var data = jsonDecode(response.body);
+        setState(() {
+          aiResponse =
+              data['candidates']?[0]['content']['parts'][0]['text'] ?? "No response from AI";
+        });
+      } else {
+        setState(() {
+          aiResponse = "Error getting AI response, Status Code: ${response.statusCode}";
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        aiResponse = "AI request failed with error: $e";
+      });
+    }
+  }
+
+  // Handles errors when fetching data
+  void setErrorState() {
+    if (!mounted) return;
+    setState(() {
+      time = "Error";
+      accelerationX = "Error";
+      accelerationY = "Error";
+      accelerationZ = "Error";
+      rotationX = "Error";
+      rotationY = "Error";
+      rotationZ = "Error";
+      temperature = "Error";
+      latitude = "Error";
+      longitude = "Error";
+      altitude = "Error";
+      steps = "Error";
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sensor Results'),
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      appBar: AppBar(title: const Text('Smart Gadget Monitor'), centerTitle: true),
+      body: RefreshIndicator(
+        onRefresh: fetchSensorData,
         child: ListView(
+          padding: const EdgeInsets.all(16.0),
           children: [
             _buildSensorBox("Time", time, Icons.access_time),
-            _buildSensorBox("Acceleration", acceleration, Icons.speed),
-            _buildSensorBox("Rotation", rotation, Icons.sync),
+            _buildAccelerationBox(),
+            _buildRotationBox(),
             _buildSensorBox("Temperature", temperature, Icons.thermostat),
-            _buildSensorBox("Latitude", latitude, Icons.map),
-            _buildSensorBox("Longitude", longitude, Icons.map),
-            _buildSensorBox("Altitude", altitude, Icons.terrain),
+            _buildLocationBox(),
+            _buildStepsBox(),
+            const SizedBox(height: 20),
+            _buildTextInput(),
+            _buildAIResponseBox(),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: fetchSensorData,
+        child: const Icon(Icons.refresh),
       ),
     );
   }
@@ -129,18 +211,27 @@ class _SmartGadgetState extends State<SmartGadget> {
     return Card(
       elevation: 6,
       margin: const EdgeInsets.symmetric(vertical: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: ListTile(
         leading: Icon(icon, size: 36, color: Colors.blueAccent),
-        title: Text(
-          title,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          value,
-          style: const TextStyle(fontSize: 16),
-        ),
+        title: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        subtitle: Text(value, style: const TextStyle(fontSize: 16)),
       ),
     );
   }
-} 
+
+  Widget _buildAccelerationBox() => _buildSensorBox("Acceleration", "$accelerationX, $accelerationY, $accelerationZ", Icons.speed);
+  Widget _buildRotationBox() => _buildSensorBox("Rotation", "$rotationX, $rotationY, $rotationZ", Icons.sync);
+  Widget _buildLocationBox() => _buildSensorBox("Location", location, Icons.location_on);
+  Widget _buildStepsBox() => _buildSensorBox("Steps", steps, Icons.directions_walk);
+
+  Widget _buildTextInput() {
+    return Column(
+      children: [
+        TextField(controller: promptController, decoration: const InputDecoration(hintText: "Enter your question for AI")),
+        ElevatedButton(onPressed: () => sendToAI(promptController.text), child: const Text('Send to AI')),
+      ],
+    );
+  }
+
+  Widget _buildAIResponseBox() => _buildSensorBox("AI Response", aiResponse, Icons.chat);
+}
