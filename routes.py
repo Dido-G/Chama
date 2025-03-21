@@ -7,7 +7,12 @@ from sqlalchemy import func
 import math
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
+from google.auth.transport import requests
+from google.oauth2 import id_token
 
+app.secret_key = "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"  # Required for session handling
+
+GOOGLE_CLIENT_ID = "1090982044497-fjqbk8nh6234ne3blkve1bpe2secit85.apps.googleusercontent.com"
 
 # Home route
 @app.route('/')
@@ -203,6 +208,29 @@ template = """
 
     Answer:
  """
+@app.route('/google-login', methods=['POST'])
+def google_login():
+    try:
+        data = request.get_json()
+        token = data.get("token")
+
+        # Verify the token
+        id_info = id_token.verify_oauth2_token(token, requests.Request(), GOOGLE_CLIENT_ID)
+
+        user = User.query.filter_by(username=id_info["email"]).first()
+        if user:
+            login_user(user)
+            return jsonify({"success": True, "email": id_info['email']}), 200  # Explicit success response
+        else:
+            user = User(username=id_info["email"], password=1, age=1,height=1,weight=1)
+            db.session.add(user)
+            db.session.commit()      
+            login_user(user)  
+            return jsonify({"success": True, "email": id_info['email']}), 200  # Explicit success response
+
+    except Exception as e:
+        print("Error:", str(e))  # Log error to terminal
+        return jsonify({"success": False, "error": str(e)}), 400  # Explicit error response
 
 ai_model = OllamaLLM(model="llama3")
 
