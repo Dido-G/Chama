@@ -28,9 +28,9 @@ def load_user(user_id):
 # Create all database tables
 with app.app_context():
     db.create_all()
+    
 
 
-# Run the app with socketio
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=8080)
 
