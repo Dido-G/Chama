@@ -5,14 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/profile.css') }}">
-
-    
-
 </head>
 <body>
     <div class="container">
         <div class="profile-header">
-            <div class="logo">✦</div>
+            <div class="logo">&#10023;</div> <!-- Unicode star to ensure proper display -->
             <h3>Welcome, {{ user.username }}</h3>
             <h5>Your Personal Dashboard</h5>
         </div>
@@ -22,7 +19,7 @@
                 {% if messages %}
                     <div class="flash-container">
                         {% for category, message in messages %}
-                            <div class="flash-message {{ category }}">
+                            <div class="flash-message {{ category }}" data-category="{{ category }}">
                                 {{ message }}
                                 <span class="close-btn">&times;</span>
                             </div>
@@ -58,7 +55,7 @@
             </form>
 
             <h3 class="subsection-title">Pending Tasks</h3>
-            {% if tasks %}
+            {% if tasks|length > 0 %}
                 <ul class="task-list">
                     {% for task in tasks %}
                         <li class="task-item">
@@ -74,7 +71,7 @@
             {% endif %}
 
             <h3 class="subsection-title">Completed Tasks</h3>
-            {% if done_tasks %}
+            {% if done_tasks|length > 0 %}
                 <ul class="task-list">
                     {% for task in done_tasks %}
                         <li class="task-item completed-task">
@@ -98,30 +95,61 @@
         </div>
     </div>
 
+    <!-- Chat Popup -->
+    <div id="chat-popup" class="chat-container">
+        <div class="chat-header">
+            <span>Chat Assistant</span>
+            <button onclick="toggleChat()" class="close-chat">&times;</button>
+        </div>
+        <div id="chat-body" class="chat-body"></div>
+        <input type="text" id="chat-input" placeholder="Type a message..." onkeydown="sendMessage(event)">
+    </div>
+    <button onclick="toggleChat()" class="chat-toggle">💬 Chat</button>
+
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.flash-message').forEach(message => {
-                setTimeout(() => {
-                    message.style.transition = "opacity 0.5s ease-out";
-                    message.style.opacity = "0";
-                    setTimeout(() => {
-                        message.style.display = "none";
-                    }, 500); // Wait for fade-out to complete
-                }, 1000); // Start fading out after 1 second
-            });
-    
-            document.querySelectorAll('.close-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    btn.parentElement.style.transition = "opacity 0.5s ease-out";
-                    btn.parentElement.style.opacity = "0";
-                    setTimeout(() => {
-                        btn.parentElement.style.display = "none";
-                    }, 500);
-                });
-            });
-        });
+        function toggleChat() {
+            const chatContainer = document.getElementById('chat-popup');
+            chatContainer.classList.toggle('show');
+        }
+
+        function sendMessage(event) {
+            if (event.key === 'Enter') {
+                const input = document.getElementById('chat-input');
+                const message = input.value;
+                if (message.trim()) {
+                    addMessageToChat('user', message);
+                    input.value = '';
+                    fetch('/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({ message: message }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.response) {
+                            addMessageToChat('bot', data.response);
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                }
+            }
+        }
+
+        function addMessageToChat(sender, message) {
+            const chatBody = document.getElementById('chat-body');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = sender === 'user' ? 'user-message' : 'bot-message';
+            messageDiv.textContent = message;
+            chatBody.appendChild(messageDiv);
+            chatBody.scrollTop = chatBody.scrollHeight; // Scroll to the bottom
+        }
+
+        function startActivity() {
+            // Redirect to the map page or show the map in a modal
+            window.location.href = "{{ url_for('gps') }}"; // Assuming the GPS page is the map page
+        }
     </script>
-<script> window.chtlConfig = { chatbotId: "5782666139" } </script>
-<script async data-id="5782666139" id="chatling-embed-script" type="text/javascript" src="https://chatling.ai/js/embed.js"></script>
 </body>
 </html>

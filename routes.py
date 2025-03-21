@@ -151,7 +151,7 @@ def sensor_data():
         print(f"Error: {e}")
         return jsonify({"status": "error", "message": "Failed to receive data"}), 500
 
-# Get user info
+#Get user info
 @app.route("/api/user/<username>", methods=['GET'])
 def get_user(username):
     user = User.query.filter_by(username=username).first()
@@ -207,23 +207,71 @@ template = """
 ai_model = OllamaLLM(model="llama3")
 
 # Chatbot Route for Llama
+
 @app.route('/chat', methods=['POST'])
 @login_required
 def chat():
-    user_message = request.form.get('message')  # Get the user's message from the form
+    user_message = request.form.get('message')
     if not user_message:
         return jsonify({'error': 'Message cannot be empty!'}), 400
+
+    # Extract all fields from the User model
+    db_keywords = {
+        'age': current_user.age,
+        'height': current_user.height,
+        'weight': current_user.weight
+    }
     
-    # Create the chat prompt template
+    # Sensor data keywords - these don't need user_id filtering
+    sensor_keywords = ['temperature', 'kilometers', 'latitude', 'longitude', 'steps', 
+                      'acceleration_x', 'acceleration_y', 'acceleration_z', 
+                      'rotation_x', 'rotation_y', 'rotation_z']
+
+    # Function to check for each keyword in the message and return corresponding data
+    def check_message_for_keywords(message, db_keywords, sensor_keywords):
+        message = message.lower()
+
+        # First check User-data keywords
+        for keyword, value in db_keywords.items():
+            if keyword in message and value is not None:
+                return f"Your {keyword} is {value}."
+        
+        #check sensor data keywords
+        for keyword in sensor_keywords:
+            if keyword in message:
+                sensor_data = SensorData.query.order_by(SensorData.timestamp.desc()).first()
+                if sensor_data and hasattr(sensor_data, keyword) and getattr(sensor_data, keyword) is not None:
+                    return f"Your {keyword} is {getattr(sensor_data, keyword)}."
+                else:
+                    return f"I couldn't find your {keyword} data."
+        
+        # If no relevant data is found, return None to indicate the AI should respond
+        return None
+
+    # Check if the message contains any relevant keywords
+    db_response = check_message_for_keywords(user_message, db_keywords, sensor_keywords)
+    
+    if db_response:
+        return jsonify({'response': db_response}), 200
+
+    # If no data from db matched, use the AI model to generate a response
     prompt_template = ChatPromptTemplate.from_messages([
         ("system", "You are an assistant that helps with various tasks."),
         ("user", user_message)
     ])
     
-    # Send the message to the Llama model
+    # Accessing the 'content' using the attribute/method
+    prompt_str = "\n".join([message.content for message in prompt_template.format_messages()])
+
     try:
-        response = ai_model.generate_response(prompt_template)
-        bot_reply = response['text']
+        response = ai_model.invoke(prompt_str)  # Pass the formatted string to invoke()
+
+        # Check if the response is a string or a dictionary
+        if isinstance(response, str):
+            bot_reply = response  # If it's a string, use it directly
+        else:
+            bot_reply = response.get('text', 'No response text found')
+
         return jsonify({'response': bot_reply}), 200
     except Exception as e:
         print(f"Error with Llama model: {e}")
@@ -232,14 +280,19 @@ def chat():
 @app.route('/gps', methods=['GET', 'POST'])
 @login_required
 def gps():
-    latitude, longitude = 48.8584, 2.2945 
-    place_name = "Eiffel Tower, Paris"
+    # Get the latest sensor data from the database
+    sensor_data = SensorData.query.order_by(SensorData.timestamp.desc()).first()
+    
+    if sensor_data:
+        latitude = sensor_data.latitude
+        longitude = sensor_data.longitude
+    else:
+        # Handle the case where no sensor data is available
+        flash('No sensor data available.', 'warning')
+        latitude, longitude = None, None
 
-    if request.method == 'POST':
-        place_name = request.form.get('place')
-        latitude, longitude = geocode_place(place_name)
+    return render_template('map.html', latitude=latitude, longitude=longitude)
 
-    return render_template('gps_location.html', latitude=latitude, longitude=longitude, place=place_name)
 
 def geocode_place(place_name):
     API_KEY = '315682c906324e26811da4778ed6d002'  # Замени със своя API ключ
