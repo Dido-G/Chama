@@ -24,7 +24,6 @@ class User(UserMixin, db.Model):
 class SensorData(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     #heart_rate = db.Column(db.Integer, nullable=False)
-    
     temperature = db.Column(db.Float, nullable=False)
     kilometers = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
