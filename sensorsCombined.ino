@@ -28,6 +28,8 @@ const long interval = 2000;
 sensors_event_t accel, gyro, temp;
 double longtitude,latitude,altitude;
 uint8_t timeHour,timeMinute,timeSecond;
+
+float accelX_offset=0,accelY_offset=0,accelZ_offset=0,gyroX_offset=0,gyroY_offset=0,gyroZ_offset=0;
 HardwareSerial gpsSerial(2);
 void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
     switch (type) {
@@ -54,6 +56,13 @@ void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
 }
 void readMpu6050(){
   mpu.getEvent(&accel, &gyro, &temp);
+  accel.acceleration.x-=accelX_offset;
+  accel.acceleration.y-=accelY_offset;
+  accel.acceleration.z-=accelZ_offset;
+
+  gyro.gyro.x-=gyroX_offset;
+  gyro.gyro.y-=gyroY_offset;
+  gyro.gyro.z-=gyroZ_offset;
 
   /* Print out the values */
   Serial.print("Acceleration X: ");
@@ -118,36 +127,36 @@ void checkCallibraion(){
     Serial.println("Button callibration clicked");
     Serial.println("Button callibration clicked");
     Serial.println("Button callibration clicked");
-    // long accelX_sum = 0, accelY_sum = 0, accelZ_sum = 0;
-    // long gyroX_sum = 0, gyroY_sum = 0, gyroZ_sum = 0;
-    // int readings = 100;  // Number of readings to average
+    long accelX_sum = 0, accelY_sum = 0, accelZ_sum = 0;
+    long gyroX_sum = 0, gyroY_sum = 0, gyroZ_sum = 0;
+    int readings = 1;  // Number of readings to average
 
-    // for (int i = 0; i < readings; i++) {
-    //   sensors_event_t accel, gyro, temp;
-    //   mpu.getEvent(&accel, &gyro, &temp);
+    for (int i = 0; i < readings; i++) {
+      sensors_event_t accel, gyro, temp;
+      mpu.getEvent(&accel, &gyro, &temp);
 
-    //   accelX_sum += accel.acceleration.x;
-    //   accelY_sum += accel.acceleration.y;
-    //   accelZ_sum += accel.acceleration.z;
+      accelX_sum += accel.acceleration.x;
+      accelY_sum += accel.acceleration.y;
+      accelZ_sum += accel.acceleration.z;
 
-    //   gyroX_sum += gyro.gyro.x;
-    //   gyroY_sum += gyro.gyro.y;
-    //   gyroZ_sum += gyro.gyro.z;
+      gyroX_sum += gyro.gyro.x;
+      gyroY_sum += gyro.gyro.y;
+      gyroZ_sum += gyro.gyro.z;
 
-    //   delay(10);  // Short delay between readings
-    // }
+      delay(10);  // Short delay between readings
+    }
 
-    // // Calculate the average values to get the offsets
-    // accelX_offset = accelX_sum / readings;
-    // accelY_offset = accelY_sum / readings;
-    // accelZ_offset = accelZ_sum / readings;
+    // Calculate the average values to get the offsets
+    accelX_offset = accelX_sum / readings;
+    accelY_offset = accelY_sum / readings;
+    accelZ_offset = accelZ_sum / readings;
     
-    // gyroX_offset = gyroX_sum / readings;
-    // gyroY_offset = gyroY_sum / readings;
-    // gyroZ_offset = gyroZ_sum / readings;
+    gyroX_offset = gyroX_sum / readings;
+    gyroY_offset = gyroY_sum / readings;
+    gyroZ_offset = gyroZ_sum / readings;
 
-    // // Adjust for the accelerometer reading (expect 0G for X and Y, 1G for Z when stationary)
-    // accelZ_offset = accelZ_offset - 9.81;  // Adjust Z-axis to represent gravity (9.81 m/s^2)
+    // Adjust for the accelerometer reading (expect 0G for X and Y, 1G for Z when stationary)
+    accelZ_offset = accelZ_offset - 9.81;  // Adjust Z-axis to represent gravity (9.81 m/s^2)
   }
 }
 void readSensors(void *params){
@@ -266,8 +275,8 @@ void setup(void) {
   Serial.print("ESP32 IP: ");
   Serial.println(WiFi.localIP());
 
-  webSocket.begin(webSocketIp, websocketPort, "/");  // Connect to the WebSocket server
-  webSocket.onEvent(webSocketEvent);  // Attach event handler
+  // webSocket.begin(webSocketIp, websocketPort, "/");  // Connect to the WebSocket server
+  // webSocket.onEvent(webSocketEvent);  // Attach event handler
   Serial.println("Adafruit MPU6050 test!");
 
   // Try to initialize!
