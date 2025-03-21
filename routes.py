@@ -3,11 +3,10 @@ from flask_login import login_user, login_required, logout_user, current_user
 from extensions import db
 from models import User, Task, DoneTask, SensorData
 from app import app
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
-import requests
-from datetime import datetime
 from sqlalchemy import func
 import math
+from langchain_ollama import OllamaLLM
+from langchain_core.prompts import ChatPromptTemplate
 
 
 # Home route
@@ -194,3 +193,62 @@ def get_latest_sensor_data():
 def get_tasks(user_id):
     tasks = Task.query.filter_by(user_id=user_id).all()
     return jsonify([{'id': task.id, 'task': task.task, 'timestamp': task.timestamp.isoformat()} for task in tasks])
+
+template = """
+    Answer the question bellow.
+
+    Heres the conversation history: {context}
+
+    Question {question}
+
+    Answer:
+ """
+
+ai_model = OllamaLLM(model="llama3")
+
+# Chatbot Route for Llama
+@app.route('/chat', methods=['POST'])
+@login_required
+def chat():
+    user_message = request.form.get('message')  # Get the user's message from the form
+    if not user_message:
+        return jsonify({'error': 'Message cannot be empty!'}), 400
+    
+    # Create the chat prompt template
+    prompt_template = ChatPromptTemplate.from_messages([
+        ("system", "You are an assistant that helps with various tasks."),
+        ("user", user_message)
+    ])
+    
+    # Send the message to the Llama model
+    try:
+        response = ai_model.generate_response(prompt_template)
+        bot_reply = response['text']
+        return jsonify({'response': bot_reply}), 200
+    except Exception as e:
+        print(f"Error with Llama model: {e}")
+        return jsonify({'error': 'Error generating response from the model'}), 500
+
+@app.route('/gps', methods=['GET', 'POST'])
+@login_required
+def gps():
+    latitude, longitude = 48.8584, 2.2945 
+    place_name = "Eiffel Tower, Paris"
+
+    if request.method == 'POST':
+        place_name = request.form.get('place')
+        latitude, longitude = geocode_place(place_name)
+
+    return render_template('gps_location.html', latitude=latitude, longitude=longitude, place=place_name)
+
+def geocode_place(place_name):
+    API_KEY = '315682c906324e26811da4778ed6d002'  # Замени със своя API ключ
+    url = f"https://api.opencagedata.com/geocode/v1/json?q={place_name.replace(' ', '+')}&key={API_KEY}"
+    response = request.get(url)
+    data = response.json()
+
+    if data['results']:
+        location = data['results'][0]
+        return location['geometry']['lat'], location['geometry']['lng']
+    
+    return 48.8584, 2.2945

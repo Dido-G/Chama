@@ -2,12 +2,11 @@ from flask import Flask, render_template, redirect, url_for
 from extensions import db, bcrypt, login_manager, socketio
 from flask_cors import CORS
 from config import Config
-from flask_migrate import Migrate
+
 
 
 
 app = Flask(__name__)
-migrate = Migrate(app, db)
 app.config.from_object(Config) 
 CORS(app)
 
