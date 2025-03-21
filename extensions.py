@@ -8,3 +8,4 @@ bcrypt = Bcrypt()
 login_manager = LoginManager()
 socketio = SocketIO(cors_allowed_origins="*")
 
+

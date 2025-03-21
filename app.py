@@ -1,14 +1,15 @@
 from flask import Flask, render_template, redirect, url_for
 from extensions import db, bcrypt, login_manager, socketio
 from flask_cors import CORS
+from config import Config
+from flask_migrate import Migrate
+
 
 
 app = Flask(__name__)
+migrate = Migrate(app, db)
+app.config.from_object(Config) 
 CORS(app)
-# App configurations
-app.config['SECRET_KEY'] = 'your_secret_key_here'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///your_database_name.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize extensions
 db.init_app(app)
@@ -28,7 +29,8 @@ def load_user(user_id):
 with app.app_context():
     db.create_all()
 
+
 # Run the app with socketio
 if __name__ == '__main__':
-    socketio.run(app, debug=True, host="0.0.0.0", port=8080)
+    app.run(debug=True, host="0.0.0.0", port=8080)
 

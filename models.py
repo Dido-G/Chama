@@ -1,5 +1,5 @@
 import datetime
-from extensions import db, bcrypt  # Import from extensions instead of app
+from extensions import db, bcrypt
 from flask_login import UserMixin
 
 # User Model
