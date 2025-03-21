@@ -10,6 +10,7 @@
 #define GPSRx 16
 #define GPSTx 17
 #define callButt 18
+#define UVLightPin 27
 
 Adafruit_MPU6050 mpu;
 
@@ -23,7 +24,10 @@ const int websocketPort=8080;
 const int serverPort = 8080;
 WebSocketsClient webSocket;
 unsigned long previousMillis = 0;  // Variable to store last time data was sent
-const long interval = 2000; 
+const long interval = 2000;
+
+const float referenceVoltageUV=3.3;
+float uvIntensity;
 
 sensors_event_t accel, gyro, temp;
 double longtitude,latitude,altitude;
@@ -111,6 +115,9 @@ void gpsRead(){
       Serial.println(gps.satellites.value());
       timeHour=gps.time.hour();
       timeHour+=2;
+      if(timeHour>24){
+        timeHour=24-timeHour;
+      }
       timeMinute=gps.time.minute();
       timeSecond=gps.time.second();
       Serial.print("Time: ");
@@ -159,10 +166,27 @@ void checkCallibraion(){
     accelZ_offset = accelZ_offset - 9.81;  // Adjust Z-axis to represent gravity (9.81 m/s^2)
   }
 }
+void readUVLight(){
+  int uvReading = analogRead(UVLightPin); 
+  float voltage = (uvReading / 4095.0) * referenceVoltageUV;  
+  uvIntensity = (voltage - 0.99) * (15.0 / 1.8);  
+
+  if(uvIntensity<0){
+    uvIntensity=0;
+  }
+  Serial.print("UV Voltage: ");
+  Serial.print(voltage);
+  Serial.println(" V");
+
+  Serial.print("UV Intensity: ");
+  Serial.print(uvIntensity);
+  Serial.println(" mW/cm²");
+}
 void readSensors(void *params){
   while(1){
     checkCallibraion();
     readMpu6050();
+    readUVLight();
     gpsRead();
     vTaskDelay(100 / portTICK_PERIOD_MS);
   }
@@ -195,6 +219,8 @@ void sendWebsocket(void *params){
       disp+=String(altitude)+"\n\n";
       disp+="Time: ";
       disp+=String(timeHour)+":"+String(timeMinute)+":"+String(timeSecond)+"\n\n";
+      disp+="UVIntensity: ";
+      disp+=String(uvIntensity)+"\n\n";
       webSocket.sendTXT(disp);  // Send distance data via WebSocket
     }
     vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -222,6 +248,8 @@ void sendHttpRequest(void *params) {
       char timeString[9];
       snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", timeHour, timeMinute, timeSecond);
       jsonDoc["time"] = timeString;
+      
+      //@TODO add the uv intensity here!!!
 
       // Serialize JSON to string
       String jsonPayload;
@@ -264,6 +292,7 @@ void sendHttpRequest(void *params) {
 void setup(void) {
   Serial.begin(115200);
   pinMode(callButt, INPUT_PULLDOWN);
+  pinMode(UVLightPin,INPUT);
   WiFi.begin(ssid, password);
   // Connect to WiFi
   Serial.print("Connecting to WiFi");
