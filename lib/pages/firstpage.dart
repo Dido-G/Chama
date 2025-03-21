@@ -43,10 +43,10 @@ class _FirstpageState extends State<Firstpage> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: set_index,
         onTap: navigate,
-        selectedItemColor: Colors.deepPurple, // Highlighted icon color
-        unselectedItemColor: Colors.grey, // Other icons' color
+        selectedItemColor: Color(0xFFE8C6B6), 
+        unselectedItemColor: Colors.grey, 
         showUnselectedLabels: true,
-        type: BottomNavigationBarType.fixed, // Ensures labels are always visible
+        type: BottomNavigationBarType.fixed, 
         items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),

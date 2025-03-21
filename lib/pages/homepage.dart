@@ -14,42 +14,40 @@ class _HomepageState extends State<Homepage> {
   int streak = 0;
   Timer? _timer;
 
- @override
-void initState() {
-  super.initState();
-  _resetStreakOnStart(); // Force streak to start from 0
-  _loadStreak(); // Load streak from local storage
-  _startTimeCheck(); // Start checking the time every minute
-}
+  final Color mainColor = const Color(0xFFE8C6B6);
+  final Color backgroundColor = const Color(0xFFF5E6E0); 
 
-// Reset streak to 0 on app start
-Future<void> _resetStreakOnStart() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.setInt('streak', 0); // Force reset streak to 0 on app start
-}
+  @override
+  void initState() {
+    super.initState();
+    _resetStreakOnStart(); 
+    _loadStreak(); 
+    _startTimeCheck(); 
+  }
 
+  Future<void> _resetStreakOnStart() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('streak', 0); 
+  }
 
   @override
   void dispose() {
-    _timer?.cancel(); // Cancel timer when disposed
+    _timer?.cancel(); 
     super.dispose();
   }
 
-  // Load streak count from local storage
   Future<void> _loadStreak() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      streak = prefs.getInt('streak') ?? 0; // Default to 0 if no streak is found
+      streak = prefs.getInt('streak') ?? 0; 
     });
   }
 
-  // Save streak count to local storage
   Future<void> _saveStreak() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt('streak', streak);
   }
 
-  // Check time every minute and reset tasks at 22:00 if all are done
   void _startTimeCheck() {
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
       final now = DateTime.now();
@@ -59,7 +57,6 @@ Future<void> _resetStreakOnStart() async {
     });
   }
 
-  // Reset tasks if all tasks are completed and increase streak
   void _resetTasksIfComplete() {
     if (!mounted) return;
 
@@ -67,16 +64,15 @@ Future<void> _resetStreakOnStart() async {
 
     if (allTasksCompleted) {
       setState(() {
-        streak++; // Increase streak by 1
-        _saveStreak(); // Save streak to local storage
+        streak++; 
+        _saveStreak(); 
         TodoApp.tasks.forEach((task) {
-          task["isDone"] = false; // Reset all tasks to not done
+          task["isDone"] = false; 
         });
       });
     }
   }
 
-  // Calculate task progress based on completed tasks
   double calculateProgress() {
     if (TodoApp.tasks.isEmpty) return 0.0;
 
@@ -93,14 +89,20 @@ Future<void> _resetStreakOnStart() async {
     double progress = calculateProgress();
 
     return Scaffold(
+      backgroundColor: backgroundColor, 
       appBar: AppBar(
-        title: const Text("Profile"),
+        title: const Text("Profile", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         centerTitle: true,
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: mainColor,
         actions: [
           Padding(
             padding: const EdgeInsets.all(12.0),
-            child: Center(child: Text("🔥 Streak: $streak", style: const TextStyle(fontSize: 18))),
+            child: Center(
+              child: Text(
+                "🔥 Streak: $streak",
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
           ),
         ],
       ),
@@ -109,18 +111,48 @@ Future<void> _resetStreakOnStart() async {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("Task Progress", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            const Text(
+              "Task Progress",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 10),
-            LinearProgressIndicator(
-              value: progress,
-              backgroundColor: Colors.grey[300],
-              color: Colors.deepPurple,
-              minHeight: 10,
+            // Progress bar inside a box
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white, 
+                borderRadius: BorderRadius.circular(10), 
+                border: Border.all(color: mainColor, width: 2), 
+              ),
+              child: Column(
+                children: [
+                  LinearProgressIndicator(
+                    value: progress,
+                    backgroundColor: Colors.grey[300],
+                    color: mainColor,
+                    minHeight: 10,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "${(progress * 100).toStringAsFixed(1)}%", 
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: mainColor,
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 20),
             Expanded(
               child: TodoApp.tasks.isEmpty
-                  ? const Center(child: Text("No tasks available.", style: TextStyle(fontSize: 18, color: Colors.grey)))
+                  ? const Center(
+                      child: Text(
+                        "No tasks available.",
+                        style: TextStyle(fontSize: 18, color: Colors.grey),
+                      ),
+                    )
                   : ListView.builder(
                       itemCount: TodoApp.tasks.length,
                       itemBuilder: (context, index) {
@@ -129,7 +161,7 @@ Future<void> _resetStreakOnStart() async {
                         return Card(
                           elevation: isGadget ? 5 : 2,
                           margin: const EdgeInsets.symmetric(vertical: 5),
-                          color: isGadget ? Colors.lightBlueAccent : null,
+                          color: isGadget ? Colors.lightBlueAccent : Colors.white, 
                           child: ListTile(
                             leading: Checkbox(
                               value: TodoApp.tasks[index]["isDone"],

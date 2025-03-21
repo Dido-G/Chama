@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:flutter/material.dart';
 
 void main() {
@@ -9,14 +7,13 @@ void main() {
 class TodoApp extends StatefulWidget {
   static List<Map<String, dynamic>> tasks = [];
 
-  const TodoApp({super.key}); // Static list to share across pages
+  const TodoApp({super.key}); 
 
   @override
   _TodoAppState createState() => _TodoAppState();
 }
 
 class _TodoAppState extends State<TodoApp> {
-  // Function to add tasks with title and weight
   void addTask(String task, double weight) {
     if (task.isNotEmpty) {
       setState(() {
@@ -25,31 +22,34 @@ class _TodoAppState extends State<TodoApp> {
     }
   }
 
-  // Function to add smart gadgets with name, weight
   void addSmartGadget(String gadgetName, double weight) {
     if (gadgetName.isNotEmpty) {
       setState(() {
         TodoApp.tasks.add({
-          "title": gadgetName, // Use "title" for gadget
+          "title": gadgetName, 
           "isDone": false,
-          "weight": weight, // Weight for gadget as well
-          "isGadget": true, // Adding a new flag to identify gadgets
+          "weight": weight, 
+          "isGadget": true, 
         });
       });
     }
   }
 
-  // Function to toggle the "isDone" state of tasks
   void toggleTask(int index) {
     setState(() {
       TodoApp.tasks[index]["isDone"] = !(TodoApp.tasks[index]["isDone"] ?? false);
     });
   }
 
-  // Function to show the "Add Task" dialog
+  void deleteTask(int index) {
+    setState(() {
+      TodoApp.tasks.removeAt(index); 
+    });
+  }
+
   void showAddTaskDialog() {
     TextEditingController taskController = TextEditingController();
-    double taskWeight = 1.0; // Default weight
+    double taskWeight = 1.0; 
 
     showDialog(
       context: context,
@@ -75,7 +75,7 @@ class _TodoAppState extends State<TodoApp> {
                     label: taskWeight.toStringAsFixed(1),
                     onChanged: (value) {
                       setDialogState(() {
-                        taskWeight = value; // Updates UI inside dialog
+                        taskWeight = value; 
                       });
                     },
                   ),
@@ -101,10 +101,9 @@ class _TodoAppState extends State<TodoApp> {
     );
   }
 
-  // Function to show the "Add Smart Gadget" dialog
   void showAddSmartGadgetDialog() {
     TextEditingController gadgetController = TextEditingController();
-    double gadgetWeight = 1.0; // Default weight for gadget
+    double gadgetWeight = 1.0; 
 
     showDialog(
       context: context,
@@ -130,7 +129,7 @@ class _TodoAppState extends State<TodoApp> {
                     label: gadgetWeight.toStringAsFixed(1),
                     onChanged: (value) {
                       setDialogState(() {
-                        gadgetWeight = value; // Updates UI inside dialog
+                        gadgetWeight = value; 
                       });
                     },
                   ),
@@ -162,19 +161,18 @@ class _TodoAppState extends State<TodoApp> {
       appBar: AppBar(
         title: Text("To-Do List with Gadgets"),
         centerTitle: true,
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Color(0xFFE8C6B6),
       ),
+      backgroundColor: Color(0xFFF5E6E0),
       body: TodoApp.tasks.isEmpty
           ? Center(child: Text("No tasks yet. Add one!", style: TextStyle(fontSize: 18, color: Colors.grey)))
           : ListView.builder(
               padding: EdgeInsets.all(12),
               itemCount: TodoApp.tasks.length,
               itemBuilder: (context, index) {
-                // Safe Access to the "title" field (either task or gadget)
                 String title = TodoApp.tasks[index]["title"] ?? "Unknown";
                 String subtitle = "";
 
-                // Display weight for tasks and gadgets
                 if (TodoApp.tasks[index].containsKey("weight")) {
                   subtitle = "Weight: ${TodoApp.tasks[index]["weight"]}";
                 }
@@ -184,26 +182,34 @@ class _TodoAppState extends State<TodoApp> {
                 return Card(
                   elevation: 3,
                   margin: EdgeInsets.symmetric(vertical: 5),
-                  color: isGadget ? Colors.lightBlueAccent : null, // Different color for gadgets
+                  color: isGadget ? Colors.lightBlueAccent : null, 
                   child: ListTile(
                     leading: Checkbox(
-                      value: TodoApp.tasks[index]["isDone"] ?? false, // Default to false if isDone is null
+                      value: TodoApp.tasks[index]["isDone"] ?? false, 
                       onChanged: (value) => toggleTask(index),
                     ),
                     title: Text(
                       title,
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: isGadget ? FontWeight.bold : FontWeight.normal, // Bold for gadgets
+                        fontWeight: isGadget ? FontWeight.bold : FontWeight.normal, 
                         decoration: (TodoApp.tasks[index]["isDone"] ?? false)
                             ? TextDecoration.lineThrough
                             : TextDecoration.none,
                       ),
                     ),
                     subtitle: Text(subtitle),
-                    trailing: isGadget
-                        ? Icon(Icons.devices, color: Colors.blue) // Gadget-specific icon
-                        : null, // No icon for regular tasks
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min, 
+                      children: [
+                        if (isGadget)
+                          Icon(Icons.devices, color: Colors.blue), 
+                        IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red), 
+                          onPressed: () => deleteTask(index), 
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
@@ -213,13 +219,13 @@ class _TodoAppState extends State<TodoApp> {
         children: [
           FloatingActionButton(
             onPressed: showAddTaskDialog,
-            backgroundColor: Colors.deepPurple,
+            backgroundColor: Colors.deepPurple[300],
             child: Icon(Icons.add, size: 30),
           ),
           SizedBox(height: 10),
           FloatingActionButton(
             onPressed: showAddSmartGadgetDialog,
-            backgroundColor: Colors.blueAccent,
+            backgroundColor: const Color.fromARGB(255, 98, 149, 237),
             child: Icon(Icons.devices, size: 30),
           ),
         ],

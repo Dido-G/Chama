@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // For loading the asset file
+import 'package:flutter/services.dart'; 
 
-// Dummy classes for the AI model and content generation (replace with actual implementation)
 class GenerativeModel {
   final String model;
   final String apiKey;
@@ -9,9 +8,8 @@ class GenerativeModel {
   GenerativeModel({required this.model, required this.apiKey});
 
   Future<GeneratedContent> generateContent(List<Content> content) async {
-    // Simulate an AI call, replace this with actual AI model logic
-    await Future.delayed(Duration(seconds: 2)); // Simulating API call delay
-    return GeneratedContent(text: "The person is of normal weight.");
+    await Future.delayed(Duration(seconds: 2)); 
+    return GeneratedContent(text: "The person is of normal weight and should focus on both physical and mental health. Here is a recommended program.");
   }
 }
 
@@ -34,7 +32,6 @@ class Profilepage extends StatefulWidget {
 }
 
 class _ProfilepageState extends State<Profilepage> {
-  // Controllers for input fields
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _heightController = TextEditingController();
@@ -43,28 +40,27 @@ class _ProfilepageState extends State<Profilepage> {
   final TextEditingController _hoursController = TextEditingController();
   final TextEditingController _daysController = TextEditingController();
 
-  // Variables to hold the saved information
   String savedWeight = '';
   String savedHeight = '';
   String savedAge = '';
   String savedJob = '';
   String savedHours = '';
   String savedDays = '';
-  String aiResponse = ''; // To hold the AI's response
+  String aiResponse = ''; 
 
-  String apiKey = ''; // To hold the API key from the file
+  String apiKey = ''; 
 
   @override
   void initState() {
     super.initState();
-    loadApiKey(); // Load the API key when the page initializes
+    loadApiKey(); 
   }
 
-  // Function to load the API key from the assets file
+ 
   Future<void> loadApiKey() async {
     String key = await rootBundle.loadString('apiKey/key.txt');
     setState(() {
-      apiKey = key.trim(); // Remove any extra spaces or newline characters
+      apiKey = key.trim(); 
     });
   }
 
@@ -74,8 +70,9 @@ class _ProfilepageState extends State<Profilepage> {
       appBar: AppBar(
         title: const Text("Profile Information"),
         centerTitle: true,
-        backgroundColor: Colors.deepPurple[200],
+        backgroundColor: Color(0xFFE8C6B6),
       ),
+      backgroundColor: Color(0xFFF5E6E0),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Center(
@@ -91,13 +88,14 @@ class _ProfilepageState extends State<Profilepage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Weight field
                   TextFormField(
                     controller: _weightController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Weight (kg)',
                       border: OutlineInputBorder(),
+                      filled: true, 
+                      fillColor: Colors.white, 
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -108,13 +106,14 @@ class _ProfilepageState extends State<Profilepage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Height field
                   TextFormField(
                     controller: _heightController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Height (cm)',
                       border: OutlineInputBorder(),
+                      filled: true, 
+                      fillColor: Colors.white, 
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -125,13 +124,14 @@ class _ProfilepageState extends State<Profilepage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Age field
                   TextFormField(
                     controller: _ageController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Age',
                       border: OutlineInputBorder(),
+                      filled: true, 
+                      fillColor: Colors.white, 
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -142,29 +142,32 @@ class _ProfilepageState extends State<Profilepage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Job field
                   TextFormField(
                     controller: _jobController,
-                    decoration: const InputDecoration(
-                      labelText: 'Job Type',
+                    decoration: InputDecoration(
+                      labelText: 'Job ',
                       border: OutlineInputBorder(),
+                      filled: true, 
+                      fillColor: Colors.white, 
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter your job type';
+                        return 'Please enter your job ';
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 20),
 
-                  // Hours per day field
+                 
                   TextFormField(
                     controller: _hoursController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Hours per day',
                       border: OutlineInputBorder(),
+                      filled: true, 
+                      fillColor: Colors.white, 
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -175,13 +178,14 @@ class _ProfilepageState extends State<Profilepage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Days per week field
                   TextFormField(
                     controller: _daysController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Days per week',
                       border: OutlineInputBorder(),
+                      filled: true, 
+                      fillColor: Colors.white, 
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -192,15 +196,11 @@ class _ProfilepageState extends State<Profilepage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Save Button
                   ElevatedButton(
                     onPressed: () {
-                      // Dismiss keyboard
                       FocusScope.of(context).requestFocus(FocusNode());
 
-                      // Validate the form and save if valid
                       if (_formKey.currentState?.validate() ?? false) {
-                        // Get the entered data
                         String weight = _weightController.text;
                         String height = _heightController.text;
                         String age = _ageController.text;
@@ -208,7 +208,6 @@ class _ProfilepageState extends State<Profilepage> {
                         String hours = _hoursController.text;
                         String days = _daysController.text;
 
-                        // Save the data and update UI
                         setState(() {
                           savedWeight = weight;
                           savedHeight = height;
@@ -218,7 +217,6 @@ class _ProfilepageState extends State<Profilepage> {
                           savedDays = days;
                         });
 
-                        // Clear input fields
                         _weightController.clear();
                         _heightController.clear();
                         _ageController.clear();
@@ -226,7 +224,6 @@ class _ProfilepageState extends State<Profilepage> {
                         _hoursController.clear();
                         _daysController.clear();
 
-                        // Show a confirmation dialog
                         showDialog(
                           context: context,
                           builder: (BuildContext context) {
@@ -251,7 +248,6 @@ class _ProfilepageState extends State<Profilepage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Display saved information if any
                   if (savedWeight.isNotEmpty &&
                       savedHeight.isNotEmpty &&
                       savedAge.isNotEmpty)
@@ -272,14 +268,12 @@ class _ProfilepageState extends State<Profilepage> {
                       ],
                     ),
 
-                  // AI-generated Button
                   ElevatedButton(
-                    onPressed: generateAIContent, // Call to generate AI content
-                    child: const Text("Generate AI Data"),
+                    onPressed: generateAIContent, 
+                    child: const Text("Generate AI Health & Program"),
                   ),
                   const SizedBox(height: 20),
 
-                  // Display AI response
                   if (aiResponse.isNotEmpty)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,7 +295,6 @@ class _ProfilepageState extends State<Profilepage> {
     );
   }
 
-  // Function to generate AI content and classify the person based on BMI
   Future<void> generateAIContent() async {
     final weight = double.tryParse(savedWeight);
     final height = double.tryParse(savedHeight);
@@ -313,22 +306,54 @@ class _ProfilepageState extends State<Profilepage> {
       return;
     }
 
-    // Calculate BMI (Body Mass Index)
     double bmi = weight / ((height / 100) * (height / 100));
 
-    // Generate the classification based on BMI
     String classification;
     if (bmi < 18.5) {
       classification = "Skinny";
     } else if (bmi >= 18.5 && bmi <= 24.9) {
       classification = "Normal";
     } else {
-      classification = "Fat";
+      classification = "Overweight";
     }
+
+    String program = generateWeeklyProgram();
 
     // Set AI response
     setState(() {
-      aiResponse = "Based on your BMI ($bmi), you are $classification.";
+      aiResponse = "Based on your BMI ($bmi), you are $classification.\n\nWeekly Program:\n$program";
     });
+  }
+
+  String generateWeeklyProgram() {
+    String program = "";
+
+    if (savedAge.isNotEmpty) {
+      int age = int.parse(savedAge);
+      program += "Physical Training:\n";
+
+      if (age < 30) {
+        program += "- Daily cardio (e.g., running, cycling)\n";
+        program += "- Strength training 3 times a week\n";
+      } else if (age < 50) {
+        program += "- Cardio 3 times a week\n";
+        program += "- Flexibility and strength training 2 times a week\n";
+      } else {
+        program += "- Light cardio (e.g., walking) every other day\n";
+        program += "- Flexibility exercises (e.g., yoga)\n";
+      }
+
+      program += "\nMental Health Program:\n";
+
+      if (savedJob.toLowerCase().contains("stress") || int.parse(savedHours) > 8) {
+        program += "- Practice mindfulness meditation daily\n";
+        program += "- Take short breaks throughout the day\n";
+      } else {
+        program += "- Enjoy relaxing activities like reading\n";
+        program += "- Spend quality time with friends/family\n";
+      }
+    }
+
+    return program;
   }
 }
