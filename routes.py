@@ -4,6 +4,9 @@ from extensions import db
 from models import User, Task, DoneTask, SensorData
 from app import app
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
+import requests
+from datetime import datetime
+from sqlalchemy import func
 
 
 # Home route
@@ -295,42 +298,24 @@ def chat():
         response = "Sorry, I encountered an error while processing your question. Please try again."
     
     return jsonify({"response": response})
-    data = request.json
-    user_input = data.get("message")
-    user_id = data.get("user_id")
+@app.route('/start_activity')
+@login_required
+def start_activity():
+    esp32_url = "http://192.168.10.188:8080/api/sensor/latest"  # ESP32 API endpoint
 
-    # Get user info from the database
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"error": "User not found"}), 404
+    try:
+        response = requests.get(esp32_url)
+        data = response.json()
 
-    # Retrieve all sensor data
-    sensor_data = SensorData.query.order_by(SensorData.timestamp.desc()).limit(5).all()
-    if not sensor_data:
-        return jsonify({"error": "No sensor data found"}), 404
+        latitude = data.get("latitude")
+        longitude = data.get("longitude")
 
-    # Format user data
-    user_data = f"User {user.username} (Age: {user.age}, Height: {user.height} cm, Weight: {user.weight} kg)"
+        if latitude and longitude:
+            return render_template("map.html", latitude=latitude, longitude=longitude)
+        else:
+            flash("GPS data not available!", "danger")
+            return redirect(url_for("profile"))
 
-    
-    sensor_summary = "Recent Sensor Data:\n"
-    for data in sensor_data:
-        #sensor_summary += f"Temperature: {data.temperature}°C, Distance run: {data.kilometers} km, Timestamp: {data.timestamp}\n"
-        print(data.__dict__)
-
-    context = f"""
-    You are an AI assistant with access to the user's fitness and environmental data.
-    User Info: {user_data}
-    {sensor_summary}
-    
-    User's question: {user_input}
-    """
-
-    input_ids = tokenizer.encode(context, return_tensors='pt')
-    output = ai_model.generate(input_ids, max_length=100, num_return_sequence = 1)
-    generated_text = tokenizer.decode(output[0], skip_special_tokens = True)
-
-    # Extract the response from the generated text
-    response = generated_text[len(context):].strip()
-
-    return jsonify({"response": response})
+    except requests.exceptions.RequestException as e:
+        flash(f"Error fetching GPS data: {e}", "danger")
+        return redirect(url_for("profile"))
