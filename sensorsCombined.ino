@@ -11,15 +11,16 @@
 #define GPSTx 17
 #define callButt 18
 #define UVLightPin 27
+#define BuzzerPin 14
 
 Adafruit_MPU6050 mpu;
 
 TinyGPSPlus gps;
 
-const char* ssid = "TP-LINK_7516";
-const char* password = "e0887714303";
-const char* serverAddress = "192.168.0.110";
-const char* webSocketIp = "192.168.0.111";
+const char* ssid = "Galaxy A125740";
+const char* password = "12345678";
+const char* serverAddress = "192.168.10.188";
+const char* webSocketIp = "192.168.10.173";
 const int websocketPort=8080;
 const int serverPort = 8080;
 WebSocketsClient webSocket;
@@ -35,6 +36,14 @@ uint8_t timeHour,timeMinute,timeSecond;
 
 float accelX_offset=0,accelY_offset=0,accelZ_offset=0,gyroX_offset=0,gyroY_offset=0,gyroZ_offset=0;
 HardwareSerial gpsSerial(2);
+
+int stepCount = 0;
+bool stepDetected = false;
+float previousAccZ = 0;
+float stepThreshold = 1.2; // Threshold for step detection
+float stepLength = 0.73;
+float totalDistance = 0;
+
 void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
     switch (type) {
         case WStype_CONNECTED:
@@ -58,6 +67,22 @@ void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
             break;
     }
 }
+
+void detectStep(float accZ) {
+  if (!stepDetected && accZ > stepThreshold) {
+    stepCount++;
+    totalDistance = stepCount * stepLength;
+    Serial.print("Steps: ");
+    Serial.println(stepCount);
+    Serial.print("Distance Walked: ");
+    Serial.print(totalDistance);
+    Serial.println(" meters");
+    stepDetected = true;
+  } else if (accZ < stepThreshold) {
+    stepDetected = false;
+  }
+}
+
 void readMpu6050(){
   mpu.getEvent(&accel, &gyro, &temp);
   accel.acceleration.x-=accelX_offset;
@@ -69,27 +94,28 @@ void readMpu6050(){
   gyro.gyro.z-=gyroZ_offset;
 
   /* Print out the values */
-  Serial.print("Acceleration X: ");
-  Serial.print(accel.acceleration.x);
-  Serial.print(", Y: ");
-  Serial.print(accel.acceleration.y);
-  Serial.print(", Z: ");
-  Serial.print(accel.acceleration.z);
-  Serial.println(" m/s^2");
+  // Serial.print("Acceleration X: ");
+  // Serial.print(accel.acceleration.x);
+  // Serial.print(", Y: ");
+  // Serial.print(accel.acceleration.y);
+  // Serial.print(", Z: ");
+  // Serial.print(accel.acceleration.z);
+  // Serial.println(" m/s^2");
 
-  Serial.print("Rotation X: ");
-  Serial.print(gyro.gyro.x);
-  Serial.print(", Y: ");
-  Serial.print(gyro.gyro.y);
-  Serial.print(", Z: ");
-  Serial.print(gyro.gyro.z);
-  Serial.println(" rad/s");
+  // Serial.print("Rotation X: ");
+  // Serial.print(gyro.gyro.x);
+  // Serial.print(", Y: ");
+  // Serial.print(gyro.gyro.y);
+  // Serial.print(", Z: ");
+  // Serial.print(gyro.gyro.z);
+  // Serial.println(" rad/s");
 
-  Serial.print("Temperature: ");
-  Serial.print(temp.temperature);
-  Serial.println(" degC");
+  // Serial.print("Temperature: ");
+  // Serial.print(temp.temperature);
+  // Serial.println(" degC");
 
-  Serial.println("");
+  // Serial.println("");
+  detectStep(accel.acceleration.z);
 }
 void gpsRead(){
 
@@ -136,7 +162,7 @@ void checkCallibraion(){
     Serial.println("Button callibration clicked");
     long accelX_sum = 0, accelY_sum = 0, accelZ_sum = 0;
     long gyroX_sum = 0, gyroY_sum = 0, gyroZ_sum = 0;
-    int readings = 1;  // Number of readings to average
+    int readings = 30;  // Number of readings to average
 
     for (int i = 0; i < readings; i++) {
       sensors_event_t accel, gyro, temp;
@@ -174,13 +200,13 @@ void readUVLight(){
   if(uvIntensity<0){
     uvIntensity=0;
   }
-  Serial.print("UV Voltage: ");
-  Serial.print(voltage);
-  Serial.println(" V");
+  // Serial.print("UV Voltage: ");
+  // Serial.print(voltage);
+  // Serial.println(" V");
 
-  Serial.print("UV Intensity: ");
-  Serial.print(uvIntensity);
-  Serial.println(" mW/cm²");
+  // Serial.print("UV Intensity: ");
+  // Serial.print(uvIntensity);
+  // Serial.println(" mW/cm²");
 }
 void readSensors(void *params){
   while(1){
@@ -188,7 +214,7 @@ void readSensors(void *params){
     readMpu6050();
     readUVLight();
     gpsRead();
-    vTaskDelay(100 / portTICK_PERIOD_MS);
+    vTaskDelay(500 / portTICK_PERIOD_MS);
   }
 }
 void sendWebsocket(void *params){
@@ -248,7 +274,7 @@ void sendHttpRequest(void *params) {
       char timeString[9];
       snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", timeHour, timeMinute, timeSecond);
       jsonDoc["time"] = timeString;
-      
+      jsonDoc["steps"]= stepCount;
       //@TODO add the uv intensity here!!!
 
       // Serialize JSON to string
@@ -263,10 +289,10 @@ void sendHttpRequest(void *params) {
 
       int httpResponseCode = http.POST(jsonPayload);
       if (httpResponseCode > 0) {
-        Serial.print("HTTP Response code: ");
+        Serial.print("HTTP1 Response code: ");
         Serial.println(httpResponseCode);
       } else {
-        Serial.print("HTTP Error: ");
+        Serial.print("HTTP1 Error: ");
         Serial.println(httpResponseCode);
       }
       http.end();
@@ -277,10 +303,10 @@ void sendHttpRequest(void *params) {
 
       httpResponseCode = http2.POST(jsonPayload);
       if (httpResponseCode > 0) {
-        Serial.print("HTTP Response code: ");
+        Serial.print("HTTP2 Response code: ");
         Serial.println(httpResponseCode);
       } else {
-        Serial.print("HTTP Error: ");
+        Serial.print("HTTP2 Error: ");
         Serial.println(httpResponseCode);
       }
       http2.end();
@@ -293,6 +319,7 @@ void setup(void) {
   Serial.begin(115200);
   pinMode(callButt, INPUT_PULLDOWN);
   pinMode(UVLightPin,INPUT);
+  pinMode(BuzzerPin, OUTPUT);
   WiFi.begin(ssid, password);
   // Connect to WiFi
   Serial.print("Connecting to WiFi");
