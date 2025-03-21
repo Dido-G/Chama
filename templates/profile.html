@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/profile.css') }}">
-        
-    </style>
+
+    
+
 </head>
 <body>
     <div class="container">
@@ -118,32 +119,6 @@
                     }, 500);
                 });
             });
-            
-            // Chatbot custom trigger functionality
-            const chatButton = document.getElementById('custom-chatbot-trigger');
-            chatButton.addEventListener('click', function() {
-                // Find and click the original Chatling button
-                const chatlingLauncher = document.querySelector('.chatling-launcher-button');
-                if (chatlingLauncher) {
-                    chatlingLauncher.click();
-                } else {
-                    // If not found, try again after a short delay
-                    setTimeout(() => {
-                        const retryLauncher = document.querySelector('.chatling-launcher-button');
-                        if (retryLauncher) retryLauncher.click();
-                    }, 1000);
-                }
-            });
-            
-            // Style the Chatling container when it loads
-            const styleInterval = setInterval(() => {
-                const chatlingContainer = document.getElementById('chatling-container');
-                if (chatlingContainer) {
-                    chatlingContainer.style.borderRadius = '16px';
-                    chatlingContainer.style.boxShadow = '0 15px 35px rgba(189, 140, 125, 0.3)';
-                    clearInterval(styleInterval);
-                }
-            }, 500);
         });
     </script>
 <script> window.chtlConfig = { chatbotId: "5782666139" } </script>
